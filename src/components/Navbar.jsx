@@ -76,7 +76,7 @@ const Navbar = () => {
             onClick={() => (isOwner ? navigate("/owner") : changeRole())}
             className="cursor-pointer"
           >
-            {isOwner ? "Dashboard" : "List cars"}
+            {isOwner ? "Dashboard" : "Admin Login"}
           </button>
 
           <button
