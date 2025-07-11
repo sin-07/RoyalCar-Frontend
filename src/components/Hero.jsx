@@ -34,7 +34,7 @@ const Hero = () => {
         transition={{ duration: 0.8, delay: 0.2 }}
         className="text-4xl md:text-5xl font-semibold"
       >
-        Luxury cars on Rent
+        Cars on Rent
       </motion.h1>
 
       <motion.form
