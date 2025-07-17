@@ -25,7 +25,15 @@ const Footer = () => {
             alt="logo"
             className="h-8 md:h-9"
           /> */}
-          <h1 className="font-extrabold text-2xl">RoyalCar</h1>
+          <motion.img
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            src={assets.royalcarslogo}
+            alt="logo"
+            className="h-11"
+          />
+
 
           <motion.p
             initial={{ opacity: 0 }}
@@ -128,10 +136,10 @@ const Footer = () => {
         initial={{ opacity: 0, y: 10 }}
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.6 }}
-        className="flex flex-col md:flex-row gap-2 items-center justify-between py-5"
+        className="py-6 flex items-center justify-center"
       >
-        <p>© {new Date().getFullYear()} Brand. All rights reserved.</p>
-        <ul className="flex items-center gap-4">
+        <p className="">© {new Date().getFullYear()} Royal cars. All rights reserved.</p>
+        {/* <ul className="flex items-center gap-4">
           <li>
             <a href="#">Privacy</a>
           </li>
@@ -143,7 +151,7 @@ const Footer = () => {
           <li>
             <a href="#">Cookies</a>
           </li>
-        </ul>
+        </ul> */}
       </motion.div>
     </motion.div>
   );

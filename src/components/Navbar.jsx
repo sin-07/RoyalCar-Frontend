@@ -32,22 +32,18 @@ const Navbar = () => {
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className={`flex items-center justify-between px-6 md:px-16 lg:px-24 xl:px-32 py-4 text-gray-600 border-b border-borderColor relative transition-all ${
+      className={`flex items-center justify-between px-6 md:px-10 lg:px-10 xl:px-10 py-4 text-gray-600 border-b border-borderColor relative transition-all ${
         location.pathname === "/" && "bg-light"
       }`}
     >
       <Link to="/">
-        {/* <motion.img
+        <motion.img
           whileHover={{ scale: 1.05 }}
-          src={assets.logo}
+          src={assets.royalcarslogo}
           alt="logo"
-          className="h-8"
-        /> */}
-        <motion.span
-          whileHover={{ scale: 1.05 }}
-          
-          className="h-8 font-extrabold text-2xl"
-        >RoyalCar</motion.span>
+          className="h-11"
+        />
+        
 
       </Link>
 
