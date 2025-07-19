@@ -1,9 +1,11 @@
 import React from "react";
 import { useAppContext } from "../context/AppContext";
 import toast from "react-hot-toast";
+import { useLocation } from "react-router-dom";
 
 const Login = () => {
-  const { setShowLogin, axios, setToken, navigate } = useAppContext();
+  const { setShowLogin, axios, setToken, navigate, setIsOwner, intendedRoute, setIntendedRoute } = useAppContext();
+  const location = useLocation();
 
   const [state, setState] = React.useState("login");
   const [name, setName] = React.useState("");
@@ -13,6 +15,40 @@ const Login = () => {
   const onSubmitHandler = async (event) => {
     try {
       event.preventDefault();
+      
+      // Check for admin credentials
+      if (email === "aniket.singh9322@gmail.com" && password === "Vicky@123") {
+        // Create a special admin login
+        try {
+          const { data } = await axios.post(`/api/user/admin-login`, {
+            email,
+            password,
+          });
+
+          if (data.success) {
+            setIsOwner(true);
+            setToken(data.token);
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('isAdmin', 'true');
+            setShowLogin(false);
+            toast.success("Admin login successful!");
+            // Redirect to intended route or owner dashboard
+            const redirectTo = intendedRoute || "/owner";
+            setIntendedRoute(null);
+            navigate(redirectTo);
+            return;
+          } else {
+            toast.error("Admin authentication failed");
+            return;
+          }
+        } catch (adminError) {
+          // If admin endpoint doesn't exist, create admin as regular user
+          toast.error("Admin authentication not available. Contact developer.");
+          return;
+        }
+      }
+
+      // Regular user login/register
       const { data } = await axios.post(`/api/user/${state}`, {
         name,
         email,
@@ -20,10 +56,15 @@ const Login = () => {
       });
 
       if (data.success) {
-        navigate("/");
         setToken(data.token);
         localStorage.setItem("token", data.token);
         setShowLogin(false);
+        toast.success(state === "login" ? "Login successful!" : "Account created successfully!");
+        
+        // Redirect to intended route or home
+        const redirectTo = intendedRoute || "/";
+        setIntendedRoute(null);
+        navigate(redirectTo);
       } else {
         toast.error(data.message);
       }
@@ -45,6 +86,9 @@ const Login = () => {
         <p className="text-2xl font-medium m-auto">
           <span className="text-primary">User</span>{" "}
           {state === "login" ? "Login" : "Sign Up"}
+        </p>
+        <p className="text-xs text-gray-500 text-center w-full">
+          Admin access: Use admin email and password
         </p>
         {state === "register" && (
           <div className="w-full">

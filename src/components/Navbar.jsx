@@ -6,26 +6,12 @@ import toast from "react-hot-toast";
 import { motion } from "motion/react";
 
 const Navbar = () => {
-  const { setShowLogin, user, logout, isOwner, axios, setIsOwner } =
+  const { setShowLogin, user, logout, isOwner, axios, requireLogin } =
     useAppContext();
 
   const location = useLocation();
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
-
-  const changeRole = async () => {
-    try {
-      const { data } = await axios.post("/api/owner/change-role");
-      if (data.success) {
-        setIsOwner(true);
-        toast.success(data.message);
-      } else {
-        toast.error(data.message);
-      }
-    } catch (error) {
-      toast.error(error.message);
-    }
-  };
 
   return (
     <motion.div
@@ -53,27 +39,31 @@ const Navbar = () => {
         } ${open ? "max-sm:translate-x-0" : "max-sm:translate-x-full"}`}
       >
         {menuLinks.map((link, index) => (
-          <Link key={index} to={link.path}>
+          <Link 
+            key={index} 
+            to={link.path}
+            onClick={(e) => {
+              // Check if route requires authentication
+              const protectedRoutes = ['/cars', '/total-cars', '/my-bookings'];
+              if (protectedRoutes.includes(link.path) && !user) {
+                e.preventDefault();
+                requireLogin('Please login to access this page', link.path);
+              }
+            }}
+          >
             {link.name}
           </Link>
         ))}
 
-        <div className="hidden lg:flex items-center text-sm gap-2 border border-borderColor px-3 rounded-full max-w-56">
-          <input
-            type="text"
-            className="py-1.5 w-full bg-transparent outline-none placeholder-gray-500"
-            placeholder="Search cars"
-          />
-          <img src={assets.search_icon} alt="search" />
-        </div>
-
         <div className="flex max-sm:flex-col items-start sm:items-center gap-6">
-          <button
-            onClick={() => (isOwner ? navigate("/owner") : changeRole())}
-            className="cursor-pointer"
-          >
-            {isOwner ? "Dashboard" : "Admin Login"}
-          </button>
+          {isOwner && (
+            <button
+              onClick={() => navigate("/owner")}
+              className="cursor-pointer text-green-600 hover:text-green-700 font-medium"
+            >
+              Dashboard
+            </button>
+          )}
 
           <button
             onClick={() => {

@@ -1,114 +1,133 @@
+// 📁 src/pages/Hero.jsx
 import React, { useState } from "react";
-import { assets, cityList } from "../assets/assets";
-import { useAppContext } from "../context/AppContext";
+import { useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
+import { assets } from "../assets/assets";
+import ci1Image from "../assets/ci1.jpg";
 
 const Hero = () => {
+  const [pickupDateTime, setPickupDateTime] = useState("");
+  const [returnDateTime, setReturnDateTime] = useState("");
   const [pickupLocation, setPickupLocation] = useState("");
 
-  const { pickupDate, setPickupDate, returnDate, setReturnDate, navigate } =
-    useAppContext();
+  const navigate = useNavigate();
 
   const handleSearch = (e) => {
     e.preventDefault();
+
+    if (!pickupDateTime || !returnDateTime || !pickupLocation) {
+      alert("Please fill all fields.");
+      return;
+    }
+
+    const pickupDT = new Date(pickupDateTime);
+    const returnDT = new Date(returnDateTime);
+    const now = new Date();
+
+    const hoursToPickup = (pickupDT - now) / (1000 * 60 * 60);
+    const durationHours = (returnDT - pickupDT) / (1000 * 60 * 60);
+
+    if (hoursToPickup < 24) {
+      alert("Pickup must be at least 24 hours from now.");
+      return;
+    }
+
+    if (durationHours < 24) {
+      alert("Booking must be at least 24 hours long.");
+      return;
+    }
+
     navigate(
-      "/cars?pickupLocation=" +
-        pickupLocation +
-        "&pickupDate=" +
-        pickupDate +
-        "&returnDate=" +
-        returnDate
+      `/cars?pickupLocation=${pickupLocation}&pickupDateTime=${pickupDateTime}&returnDateTime=${returnDateTime}`
     );
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.8 }}
-      className="h-screen flex flex-col items-center justify-center gap-14 bg-light text-center"
-    >
-      <motion.h1
-        initial={{ y: 50, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.8, delay: 0.2 }}
-        className="text-4xl md:text-5xl font-semibold"
+    <>
+      <motion.div 
+        className="hero-container relative bg-cover bg-center bg-no-repeat min-h-screen"
+        style={{
+          backgroundImage: `url(${ci1Image})`,
+        }}
       >
-        Cars on Rent
-      </motion.h1>
+        {/* Overlay removed for debugging */}
+        
+        <motion.div className="relative z-10 h-screen flex flex-col justify-center items-center gap-10 text-center px-4">
+          <h1 className="text-4xl font-bold text-black bg-white p-2 rounded">Book Your Car</h1>
 
-      <motion.form
-        initial={{ scale: 0.95, opacity: 0, y: 50 }}
-        animate={{ scale: 1, opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.4 }}
-        onSubmit={handleSearch}
-        className="flex flex-col md:flex-row items-start md:items-center justify-between p-6 rounded-lg md:rounded-full w-full max-w-80 md:max-w-200 bg-white shadow-[0px_8px_20px_rgba(0,0,0,0.1)]"
-      >
-        <div className="flex flex-col md:flex-row items-start md:items-center gap-10 min-md:ml-8">
-          <div className="flex flex-col items-start gap-2">
-            <select
-              required
-              value={pickupLocation}
-              onChange={(e) => setPickupLocation(e.target.value)}
+          <form
+            onSubmit={handleSearch}
+            className="bg-white p-6 shadow-lg rounded-xl flex flex-col md:flex-row gap-4 max-w-4xl w-full"
+          >
+            <div className="flex flex-col w-full">
+              <label className="text-sm font-medium text-gray-700 mb-2">Pickup Location</label>
+              <select
+                value={pickupLocation}
+                onChange={(e) => setPickupLocation(e.target.value)}
+                required
+                className="w-full p-3 border-2 border-gray-300 rounded-lg bg-white text-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all duration-200 appearance-none cursor-pointer hover:border-gray-400"
+                style={{
+                  backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
+                  backgroundPosition: 'right 0.5rem center',
+                  backgroundRepeat: 'no-repeat',
+                  backgroundSize: '1.5em 1.5em',
+                  paddingRight: '2.5rem'
+                }}
+              >
+                <option value="" disabled className="text-gray-400">Select Location</option>
+                <option value="Airport Parking" className="text-gray-700">Airport Parking</option>
+                <option value="Royal Car Parking" className="text-gray-700">Royal Car Parking</option>
+              </select>
+            </div>
+
+            <div className="flex flex-col w-full">
+              <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                Pickup Date & Time
+              </label>
+              <input
+                type="datetime-local"
+                value={pickupDateTime}
+                onChange={(e) => setPickupDateTime(e.target.value)}
+                required
+                className="w-full p-3 border-2 border-gray-300 rounded-lg bg-white text-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all duration-200 hover:border-gray-400 cursor-pointer"
+                style={{
+                  colorScheme: 'light',
+                }}
+              />
+            </div>
+
+            <div className="flex flex-col w-full">
+              <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Return Date & Time
+              </label>
+              <input
+                type="datetime-local"
+                value={returnDateTime}
+                onChange={(e) => setReturnDateTime(e.target.value)}
+                required
+                className="w-full p-3 border-2 border-gray-300 rounded-lg bg-white text-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all duration-200 hover:border-gray-400 cursor-pointer"
+                style={{
+                  colorScheme: 'light',
+                }}
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-8 py-3 rounded-lg font-semibold transition-all duration-200 transform hover:scale-105 focus:ring-2 focus:ring-blue-200 focus:outline-none shadow-lg hover:shadow-xl mt-6 md:mt-0 md:self-end"
             >
-              <option value="">Pickup Location</option>
-              {cityList.map((city) => (
-                <option key={city} value={city}>
-                  {city}
-                </option>
-              ))}
-            </select>
-            <p className="px-1 text-sm text-gray-500">
-              {pickupLocation ? pickupLocation : "Please select location"}
-            </p>
-          </div>
-          <div className="flex flex-col items-start gap-2">
-            <label htmlFor="pickup-date">Pick-up Date</label>
-            <input
-              value={pickupDate}
-              onChange={(e) => setPickupDate(e.target.value)}
-              type="date"
-              id="pickup-date"
-              min={new Date().toISOString().split("T")[0]}
-              className="text-sm text-gray-500"
-              required
-            />
-          </div>
-          <div className="flex flex-col items-start gap-2">
-            <label htmlFor="return-date">Return Date</label>
-            <input
-              value={returnDate}
-              onChange={(e) => setReturnDate(e.target.value)}
-              type="date"
-              id="return-date"
-              className="text-sm text-gray-500"
-              required
-            />
-          </div>
-        </div>
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className="flex items-center justify-center gap-1 px-9 py-3 max-sm:mt-4 bg-primary hover:bg-primary-dull text-white rounded-full cursor-pointer"
-        >
-          <img
-            src={assets.search_icon}
-            alt="search"
-            className="brightness-300"
-          />
-          Search
-        </motion.button>
-      </motion.form>
-
-      <motion.img
-        initial={{ y: 100, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.8, delay: 0.6 }}
-        src={assets.main_car}
-        alt="car"
-        className="max-h-74"
-      />
-    </motion.div>
+              Search Cars
+            </button>
+          </form>
+        </motion.div>
+      </motion.div>
+    </>
   );
 };
 

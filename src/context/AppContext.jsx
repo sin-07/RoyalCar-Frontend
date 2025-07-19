@@ -18,6 +18,8 @@ export const AppProvider = ({ children })=>{
     const [showLogin, setShowLogin] = useState(false)
     const [pickupDate, setPickupDate] = useState('')
     const [returnDate, setReturnDate] = useState('')
+    const [intendedRoute, setIntendedRoute] = useState(null) // For post-login redirect
+    const [isLoading, setIsLoading] = useState(true) // Add loading state
 
     const [cars, setCars] = useState([])
 
@@ -27,12 +29,29 @@ export const AppProvider = ({ children })=>{
            const {data} = await axios.get('/api/user/data')
            if (data.success) {
             setUser(data.user)
-            setIsOwner(data.user.role === 'owner')
-           }else{
-            navigate('/')
+            // Set isOwner based on user role or localStorage admin flag
+            const isAdmin = localStorage.getItem('isAdmin')
+            setIsOwner(data.user.role === 'owner' || isAdmin === 'true')
+           } else {
+            // Clear invalid token
+            localStorage.removeItem('token')
+            localStorage.removeItem('isAdmin')
+            setToken(null)
+            setUser(null)
+            setIsOwner(false)
+            axios.defaults.headers.common['Authorization'] = ''
            }
         } catch (error) {
-            toast.error(error.message)
+            // Clear invalid token on error
+            localStorage.removeItem('token')
+            localStorage.removeItem('isAdmin')
+            setToken(null)
+            setUser(null)
+            setIsOwner(false)
+            axios.defaults.headers.common['Authorization'] = ''
+            console.error('Error fetching user:', error)
+        } finally {
+            setIsLoading(false) // Set loading to false after fetch attempt
         }
     }
     // Function to fetch all cars from the server
@@ -40,8 +59,13 @@ export const AppProvider = ({ children })=>{
     const fetchCars = async () =>{
         try {
             const {data} = await axios.get('/api/user/cars')
-            data.success ? setCars(data.cars) : toast.error(data.message)
+            if (data.success) {
+                setCars(data.cars);
+            } else {
+                toast.error(data.message);
+            }
         } catch (error) {
+            console.error("Error fetching cars:", error);
             toast.error(error.message)
         }
     }
@@ -49,33 +73,55 @@ export const AppProvider = ({ children })=>{
     // Function to log out the user
     const logout = ()=>{
         localStorage.removeItem('token')
+        localStorage.removeItem('isAdmin') // Remove admin status
         setToken(null)
         setUser(null)
         setIsOwner(false)
         axios.defaults.headers.common['Authorization'] = ''
+        navigate('/')
         toast.success('You have been logged out')
+    }
+
+    // Function to handle login requirement
+    const requireLogin = (message = 'Please login to continue', redirectTo = null) => {
+        if (redirectTo) {
+            setIntendedRoute(redirectTo)
+        }
+        setShowLogin(true)
+        toast.error(message)
     }
 
 
     // useEffect to retrieve the token from localStorage
     useEffect(()=>{
         const token = localStorage.getItem('token')
-        setToken(token)
+        const isAdmin = localStorage.getItem('isAdmin')
+        
+        if (token) {
+            setToken(token)
+            axios.defaults.headers.common['Authorization'] = `${token}`
+            if (isAdmin === 'true') {
+                setIsOwner(true)
+            }
+        } else {
+            // No token found, set loading to false immediately
+            setIsLoading(false)
+        }
+        
         fetchCars()
     },[])
 
     // useEffect to fetch user data when token is available
     useEffect(()=>{
         if(token){
-            axios.defaults.headers.common['Authorization'] = `${token}`
             fetchUser()
         }
     },[token])
 
     const value = {
         navigate, currency, axios, user, setUser,
-        token, setToken, isOwner, setIsOwner, fetchUser, showLogin, setShowLogin, logout, fetchCars, cars, setCars, 
-        pickupDate, setPickupDate, returnDate, setReturnDate
+        token, setToken, isOwner, setIsOwner, fetchUser, showLogin, setShowLogin, logout, requireLogin, fetchCars, cars, setCars, 
+        pickupDate, setPickupDate, returnDate, setReturnDate, intendedRoute, setIntendedRoute, isLoading
     }
 
     return (
