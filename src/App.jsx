@@ -70,16 +70,9 @@ const AppContent = () => {
           } />
           <Route path='/total-cars' element={<TotalCars />} />
           <Route path='/cars' element={<Cars />} />
+          <Route path='/car-details/:id' element={<CarDetails />} />
         
         {/* Protected routes - require authentication */}
-        <Route 
-          path='/car-details/:id' 
-          element={
-            <ProtectedRoute>
-              <CarDetails />
-            </ProtectedRoute>
-          } 
-        />
         <Route 
           path='/my-bookings' 
           element={

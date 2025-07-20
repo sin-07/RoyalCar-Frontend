@@ -99,6 +99,7 @@ const TotalCars = () => {
 
   const handleCarClick = (carId) => {
     navigate(`/car-details/${carId}`);
+    window.scrollTo(0, 0);
   };
 
   // Show loading wheel until data is fully loaded
