@@ -4,6 +4,7 @@ import { useAppContext } from "../context/AppContext";
 import toast from "react-hot-toast";
 import CarCard from "../components/CarCard";
 import Title from "../components/Title";
+import { motion, AnimatePresence } from "motion/react";
 
 const TotalCars = () => {
   const navigate = useNavigate();
@@ -86,56 +87,102 @@ const TotalCars = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading cars...</p>
-        </div>
-      </div>
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center"
+      >
+        <motion.div 
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.5 }}
+          className="text-center"
+        >
+          <motion.div 
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            className="rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"
+          ></motion.div>
+          <motion.p 
+            initial={{ y: 10, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="text-gray-600"
+          >
+            Loading cars...
+          </motion.p>
+        </motion.div>
+      </motion.div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.6 }}
+      className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50"
+    >
       {/* Header Section */}
-      <div className="bg-white py-16">
+      <motion.div 
+        initial={{ y: -50, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+        className="bg-white py-16"
+      >
         <Title
           title="Elegance on Wheels: Our Prestige Car Collection"
           subTitle={`Explore all ${globalCars.length} available vehicles in our premium fleet`}
         />
-      </div>
+      </motion.div>
 
-      <div className="p-6 max-w-7xl mx-auto">
+      <motion.div 
+        initial={{ y: 30, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.8, delay: 0.2 }}
+        className="p-6 max-w-7xl mx-auto"
+      >
         {/* Stats Section */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 -mt-8 z-20 relative">
-          <div className="bg-white rounded-2xl shadow-lg p-6 text-center border border-gray-100">
-            <div className="text-3xl font-bold text-blue-600 mb-2">
-              {globalCars.length}
-            </div>
-            <div className="text-gray-600 font-medium">Available Cars</div>
-          </div>
-          <div className="bg-white rounded-2xl shadow-lg p-6 text-center border border-gray-100">
-            <div className="text-3xl font-bold text-green-600 mb-2">
-              {categories.length - 1}
-            </div>
-            <div className="text-gray-600 font-medium">Categories</div>
-          </div>
-          <div className="bg-white rounded-2xl shadow-lg p-6 text-center border border-gray-100">
-            <div className="text-3xl font-bold text-purple-600 mb-2">
-              {new Set(globalCars.map((car) => car.brand)).size}
-            </div>
-            <div className="text-gray-600 font-medium">Brands</div>
-          </div>
-          <div className="bg-white rounded-2xl shadow-lg p-6 text-center border border-gray-100">
-            <div className="text-3xl font-bold text-orange-600 mb-2">
-              {filteredCars.length}
-            </div>
-            <div className="text-gray-600 font-medium">Showing</div>
-          </div>
-        </div>
+        <motion.div 
+          initial={{ y: 50, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.8, delay: 0.4 }}
+          className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 -mt-8 z-20 relative"
+        >
+          {[
+            { value: globalCars.length, label: "Available Cars", color: "blue", delay: 0.1 },
+            { value: categories.length - 1, label: "Categories", color: "green", delay: 0.2 },
+            { value: new Set(globalCars.map((car) => car.brand)).size, label: "Brands", color: "purple", delay: 0.3 },
+            { value: filteredCars.length, label: "Showing", color: "orange", delay: 0.4 }
+          ].map((stat, index) => (
+            <motion.div
+              key={index}
+              initial={{ scale: 0.8, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.5 + stat.delay }}
+              whileHover={{ scale: 1.05, y: -5 }}
+              className="bg-white rounded-2xl shadow-lg p-6 text-center border border-gray-100 cursor-pointer"
+            >
+              <motion.div 
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ duration: 0.6, delay: 0.7 + stat.delay, type: "spring", stiffness: 200 }}
+                className={`text-3xl font-bold text-${stat.color}-600 mb-2`}
+              >
+                {stat.value}
+              </motion.div>
+              <div className="text-gray-600 font-medium">{stat.label}</div>
+            </motion.div>
+          ))}
+        </motion.div>
 
         {/* Search and Filter Section */}
-        <div className="bg-white rounded-2xl shadow-2xl p-6 border border-gray-100 mb-8">
+        <motion.div 
+          initial={{ y: 30, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.8, delay: 0.8 }}
+          className="bg-white rounded-2xl shadow-2xl p-6 border border-gray-100 mb-8"
+        >
           <div className="grid md:grid-cols-2 gap-6">
             {/* Search Bar */}
             <div className="relative">
@@ -262,110 +309,177 @@ const TotalCars = () => {
               )}
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Cars Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredCars.map((car) => (
-            <div
-              key={car._id}
-              className="group relative cursor-pointer"
-              onClick={() => handleCarClick(car._id)}
-            >
-              {/* Main Card */}
-              <div className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 overflow-hidden border border-gray-100">
-                <CarCard car={car} />
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6, delay: 1 }}
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+        >
+          <AnimatePresence mode="wait">
+            {filteredCars.map((car, index) => (
+              <motion.div
+                key={car._id}
+                initial={{ opacity: 0, scale: 0.8, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.8, y: -20 }}
+                transition={{ 
+                  duration: 0.5, 
+                  delay: index * 0.1,
+                  type: "spring",
+                  stiffness: 100
+                }}
+                whileHover={{ 
+                  scale: 1.05, 
+                  y: -10,
+                  transition: { duration: 0.2 }
+                }}
+                className="group relative cursor-pointer"
+                onClick={() => handleCarClick(car._id)}
+              >
+                {/* Main Card */}
+                <motion.div 
+                  whileHover={{ 
+                    boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+                    transition: { duration: 0.3 }
+                  }}
+                  className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform overflow-hidden border border-gray-100"
+                >
+                  <CarCard car={car} />
 
-                {/* Car Details Overlay */}
-                <div className="p-4 bg-gradient-to-r from-gray-50 to-white">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-                      {car.category}
-                    </span>
-                    <span className="text-xs text-gray-400">{car.year}</span>
-                  </div>
-
-                  {/* Quick Info */}
-                  <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
-                    <div className="flex items-center">
-                      <svg
-                        className="w-3 h-3 mr-1"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                        />
-                      </svg>
-                      {car.location}
+                  {/* Car Details Overlay */}
+                  <motion.div 
+                    initial={{ opacity: 0.8 }}
+                    whileHover={{ opacity: 1 }}
+                    className="p-4 bg-gradient-to-r from-gray-50 to-white"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                        {car.category}
+                      </span>
+                      <span className="text-xs text-gray-400">{car.year}</span>
                     </div>
-                    <div className="flex items-center">
-                      <svg
-                        className="w-3 h-3 mr-1"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M13 10V3L4 14h7v7l9-11h-7z"
-                        />
-                      </svg>
-                      {car.fuel_type}
-                    </div>
-                  </div>
-                </div>
-              </div>
 
-              {/* Hover Effect Border */}
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-400 via-purple-500 to-indigo-600 rounded-2xl opacity-0 group-hover:opacity-20 transition-opacity duration-300 -z-10 blur-xl"></div>
-            </div>
-          ))}
-        </div>
+                    {/* Quick Info */}
+                    <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
+                      <div className="flex items-center">
+                        <svg
+                          className="w-3 h-3 mr-1"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                          />
+                        </svg>
+                        {car.location}
+                      </div>
+                      <div className="flex items-center">
+                        <svg
+                          className="w-3 h-3 mr-1"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M13 10V3L4 14h7v7l9-11h-7z"
+                          />
+                        </svg>
+                        {car.fuel_type}
+                      </div>
+                    </div>
+                  </motion.div>
+                </motion.div>
+
+                {/* Hover Effect Border */}
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  whileHover={{ opacity: 0.2 }}
+                  transition={{ duration: 0.3 }}
+                  className="absolute inset-0 bg-gradient-to-r from-blue-400 via-purple-500 to-indigo-600 rounded-2xl -z-10 blur-xl"
+                ></motion.div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </motion.div>
 
         {/* No Results Message */}
-        {filteredCars.length === 0 && !loading && (
-          <div className="text-center py-16">
-            <div className="bg-white rounded-2xl shadow-lg p-12 max-w-md mx-auto">
-              <svg
-                className="w-16 h-16 text-gray-400 mx-auto mb-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+        <AnimatePresence>
+          {filteredCars.length === 0 && !loading && (
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: -20 }}
+              transition={{ duration: 0.5 }}
+              className="text-center py-16"
+            >
+              <motion.div 
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.2 }}
+                className="bg-white rounded-2xl shadow-lg p-12 max-w-md mx-auto"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9.172 16.172a4 4 0 115.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.47-.881-6.08-2.33"
-                />
-              </svg>
-              <h3 className="text-xl font-semibold text-gray-700 mb-2">
-                No cars found
-              </h3>
-              <p className="text-gray-500 mb-4">
-                Try adjusting your search terms or filter criteria.
-              </p>
-              <button
-                onClick={() => {
-                  setInput("");
-                  setSelectedCategory("All");
-                }}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
-              >
-                Show All Cars
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
+                <motion.svg
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.3, type: "spring", stiffness: 200 }}
+                  className="w-16 h-16 text-gray-400 mx-auto mb-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9.172 16.172a4 4 0 115.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.47-.881-6.08-2.33"
+                  />
+                </motion.svg>
+                <motion.h3 
+                  initial={{ y: 10, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.4 }}
+                  className="text-xl font-semibold text-gray-700 mb-2"
+                >
+                  No cars found
+                </motion.h3>
+                <motion.p 
+                  initial={{ y: 10, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.5 }}
+                  className="text-gray-500 mb-4"
+                >
+                  Try adjusting your search terms or filter criteria.
+                </motion.p>
+                <motion.button
+                  initial={{ y: 10, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.6 }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => {
+                    setInput("");
+                    setSelectedCategory("All");
+                  }}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+                >
+                  Show All Cars
+                </motion.button>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
+    </motion.div>
   );
 };
 
