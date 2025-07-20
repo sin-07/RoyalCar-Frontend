@@ -15,6 +15,7 @@ const TotalCars = () => {
   const [filteredCars, setFilteredCars] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [loading, setLoading] = useState(true);
+  const [dataLoaded, setDataLoaded] = useState(false);
 
   // Get unique categories from cars
   const categories = ["All", ...new Set(globalCars.map((car) => car.category))];
@@ -22,18 +23,26 @@ const TotalCars = () => {
   // Load cars on component mount
   useEffect(() => {
     const loadCars = async () => {
-      if (globalCars.length === 0) {
-        try {
+      setLoading(true);
+      setDataLoaded(false);
+      
+      try {
+        if (globalCars.length === 0) {
           await fetchCars();
-        } catch (error) {
-          // Handle the case where fetchCars fails (e.g., user not logged in or server down)
-          console.log("Could not fetch cars:", error.message);
-          toast.error(
-            "Unable to load cars. Please check your connection or try again later."
-          );
         }
+        
+        // Add a small delay to ensure smooth loading experience
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        setDataLoaded(true);
+        setLoading(false);
+      } catch (error) {
+        console.log("Could not fetch cars:", error.message);
+        toast.error(
+          "Unable to load cars. Please check your connection or try again later."
+        );
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     loadCars();
@@ -41,6 +50,12 @@ const TotalCars = () => {
 
   // Filter cars based on search input and category
   useEffect(() => {
+    // Only filter if data is loaded
+    if (!dataLoaded || globalCars.length === 0) {
+      setFilteredCars([]);
+      return;
+    }
+
     let filtered = globalCars;
 
     // Filter by search input - improved search logic
@@ -80,14 +95,37 @@ const TotalCars = () => {
     }
 
     setFilteredCars(filtered);
-  }, [input, selectedCategory, globalCars]);
+  }, [input, selectedCategory, globalCars, dataLoaded]);
 
   const handleCarClick = (carId) => {
     navigate(`/car-details/${carId}`);
   };
 
-  if (loading) {
-    return <CarWheelLoader />;
+  // Show loading wheel until data is fully loaded
+  if (loading || !dataLoaded) {
+    return (
+      <div className="fixed inset-0 bg-white z-50 flex flex-col items-center justify-center">
+        <CarWheelLoader />
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5, duration: 0.5 }}
+          className="mt-8 text-center"
+        >
+          <h3 className="text-2xl font-semibold text-gray-800 mb-2">
+            Loading Premium Cars...
+          </h3>
+          <p className="text-gray-600 max-w-md mx-auto">
+            Please wait while we fetch the latest collection of vehicles from our premium fleet.
+          </p>
+          <div className="mt-4 flex items-center justify-center space-x-1">
+            <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+            <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
+            <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
+          </div>
+        </motion.div>
+      </div>
+    );
   }
 
   return (

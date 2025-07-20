@@ -25,9 +25,32 @@ const AppContent = () => {
   const { isLoading } = useLoading()
   const isOwnerPath = useLocation().pathname.startsWith('/owner')
 
-  // Show loader during initial loading
+  // Show comprehensive loader during initial loading
   if (isLoading) {
-    return <CarWheelLoader />
+    return (
+      <div className="fixed inset-0 bg-gradient-to-br from-blue-50 via-white to-purple-50 z-50 flex flex-col items-center justify-center">
+        <CarWheelLoader />
+        <div className="mt-8 text-center max-w-lg mx-auto px-6">
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">
+            Royal Cars
+          </h1>
+          <p className="text-gray-600 mb-4">
+            Initializing your premium car rental experience...
+          </p>
+          
+          {/* Loading steps indicator */}
+          <div className="flex items-center justify-center space-x-2 mb-4">
+            <div className="w-3 h-3 bg-blue-500 rounded-full animate-bounce"></div>
+            <div className="w-3 h-3 bg-purple-500 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+            <div className="w-3 h-3 bg-indigo-500 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+          </div>
+          
+          <p className="text-sm text-gray-500">
+            Setting up backend connections and loading data...
+          </p>
+        </div>
+      </div>
+    )
   }
 
   return (
