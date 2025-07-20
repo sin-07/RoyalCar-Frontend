@@ -37,10 +37,15 @@ const AppContent = () => {
 
       {!isOwnerPath && <Navbar />}
 
-      <Routes>
-        {/* Public routes */}
-        <Route path='/' element={<Home />} />
-        <Route path='/total-cars' element={<TotalCars />} />
+      <div className={!isOwnerPath ? "pt-[73px]" : ""}>
+        <Routes>
+          {/* Public routes - Home page needs special handling for Hero section */}
+          <Route path='/' element={
+            <div className="-mt-[73px]">
+              <Home />
+            </div>
+          } />
+          <Route path='/total-cars' element={<TotalCars />} />
         
         {/* Protected routes - require authentication */}
         <Route 
@@ -90,7 +95,8 @@ const AppContent = () => {
           <Route path="manage-cars" element={<ManageCars />} />
           <Route path="manage-bookings" element={<ManageBookings />} />
         </Route>
-      </Routes>
+        </Routes>
+      </div>
 
       {!isOwnerPath && <Footer />}
     </>

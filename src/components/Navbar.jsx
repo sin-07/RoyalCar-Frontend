@@ -18,13 +18,9 @@ const Navbar = () => {
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className={`flex items-center justify-between px-6 md:px-10 lg:px-10 xl:px-10 py-4 text-gray-600 border-b border-borderColor relative transition-all z-50 ${
-        location.pathname === "/" && "bg-light"
+      className={`fixed top-0 w-full flex items-center justify-between px-6 md:px-10 lg:px-10 xl:px-10 py-4 text-gray-600 border-b border-borderColor transition-all z-50 ${
+        location.pathname === "/" ? "bg-light/95 backdrop-blur-sm" : "bg-white/95 backdrop-blur-sm"
       }`}
-      style={{
-        position: 'relative',
-        zIndex: 9999, // Ensure navbar is always on top
-      }}
     >
       <Link to="/">
         <motion.img
@@ -35,13 +31,21 @@ const Navbar = () => {
         />
       </Link>
 
+      {/* Mobile menu backdrop */}
+      {open && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 sm:hidden z-30"
+          onClick={() => setOpen(false)}
+          style={{ top: '73px' }}
+        />
+      )}
+
       <div
-        className={`max-sm:fixed max-sm:h-screen max-sm:w-full max-sm:top-16 max-sm:border-t border-borderColor right-0 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-8 max-sm:p-4 transition-all duration-300 z-50 max-sm:shadow-lg ${
-          location.pathname === "/" ? "max-sm:bg-white sm:bg-light" : "bg-white"
+        className={`max-sm:fixed max-sm:h-screen max-sm:w-full max-sm:top-[73px] max-sm:left-0 max-sm:border-t border-borderColor flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-8 max-sm:p-6 max-sm:pt-8 transition-all duration-300 max-sm:shadow-lg ${
+          location.pathname === "/" ? "max-sm:bg-white sm:bg-transparent" : "max-sm:bg-white sm:bg-transparent"
         } ${open ? "max-sm:translate-x-0" : "max-sm:translate-x-full"}`}
         style={{
-          backgroundColor: "#ffffff",
-          zIndex: 9998, // Mobile menu just below navbar but above everything else
+          zIndex: 40, // Lower than navbar but above content
         }}
       >
         {menuLinks.map((link, index) => {
@@ -61,6 +65,7 @@ const Navbar = () => {
                 if (protectedRoutes.includes(link.path) && !user) {
                   e.preventDefault();
                   requireLogin("Please login to access this page", link.path);
+                  setOpen(false); // Always hide mobile menu
                 } else {
                   // Hide mobile menu when a link is clicked
                   setOpen(false);
