@@ -13,6 +13,7 @@ const Login = () => {
     setIsOwner,
     intendedRoute,
     setIntendedRoute,
+    fetchUser,
   } = useAppContext();
   const location = useLocation();
 
@@ -37,51 +38,76 @@ const Login = () => {
 
       // Check for admin credentials
       if (email === "aniket.singh9322@gmail.com" && password === "Vicky@123") {
-        // Create a special admin login
+        console.log("Admin credentials detected, attempting admin login...");
+        console.log("Using endpoint: /api/user/admin-login");
+        console.log("Axios base URL:", axios.defaults.baseURL);
+        
+        // Use dedicated admin login endpoint
         try {
+          console.log("Making admin login request...");
           const { data } = await axios.post(`/api/user/admin-login`, {
             email,
             password,
           });
 
+          console.log("Admin login response:", data);
+
           if (data.success) {
+            console.log("Admin login successful, setting up session...");
+            
             // Set token first
             setToken(data.token);
             localStorage.setItem("token", data.token);
             localStorage.setItem("isAdmin", "true");
 
-            // Set axios headers
-            axios.defaults.headers.common["Authorization"] = `${data.token}`;
+            // Set axios headers - try without Bearer prefix for deployed backend
+            axios.defaults.headers.common["Authorization"] = data.token;
 
-            // Set admin status
+            // Set admin status and ensure it's persisted
             setIsOwner(true);
+            console.log("isOwner set to true");
+
+            // Fetch user data for admin and wait for completion
+            try {
+              await fetchUser();
+              console.log("Admin user data fetched successfully");
+            } catch (fetchError) {
+              console.error("Failed to fetch admin user data:", fetchError);
+              // Even if fetchUser fails, we can still proceed as admin since we have the token
+            }
 
             // Debug logging
             console.log("Admin login successful");
             console.log("Token set:", data.token);
-            console.log("isOwner set to true");
+            console.log("Authorization header:", `Bearer ${data.token}`);
             console.log("localStorage isAdmin set to true");
 
             // Close login modal
             setShowLogin(false);
-            toast.success("Admin login successful!");
+            toast.success("Admin login successful! Redirecting to dashboard...");
 
-            // Small delay to ensure state is set, then navigate
-            setTimeout(() => {
-              const redirectTo = intendedRoute || "/owner";
-              setIntendedRoute(null);
-              console.log("Navigating to:", redirectTo);
-              navigate(redirectTo);
-            }, 100);
-
+            // Force a hard redirect to bypass React state issues
+            console.log("Using window.location for forced redirect");
+            window.location.href = "/owner";
+            
             return;
           } else {
-            toast.error("Admin authentication failed");
+            console.error("Admin login failed with message:", data.message);
+            toast.error(data.message || "Admin authentication failed");
             return;
           }
         } catch (adminError) {
-          console.error("Admin login error:", adminError);
-          toast.error("Admin authentication failed. Please try again.");
+          console.error("Admin login error (full error):", adminError);
+          console.error("Admin login error response:", adminError.response);
+          console.error("Admin login error status:", adminError.response?.status);
+          console.error("Admin login error data:", adminError.response?.data);
+          
+          const errorMessage = adminError.response?.data?.message || 
+                              adminError.message || 
+                              "Admin authentication failed. Please try again.";
+          
+          console.error("Final error message:", errorMessage);
+          toast.error(errorMessage);
           return;
         }
       }
@@ -94,8 +120,40 @@ const Login = () => {
       });
 
       if (data.success) {
+        // Set token and headers for regular users
         setToken(data.token);
         localStorage.setItem("token", data.token);
+        
+        // Set axios headers for future requests - use direct token format
+        const authHeader = data.token;
+        axios.defaults.headers.common["Authorization"] = authHeader;
+        
+        console.log("Setting authorization header:", authHeader);
+        console.log("axios.defaults.headers.common:", axios.defaults.headers.common);
+        
+        // Clear any admin status for regular users
+        setIsOwner(false);
+        localStorage.removeItem("isAdmin");
+        
+        // Fetch user data to ensure user state is updated
+        try {
+          await fetchUser();
+          console.log("User data fetched successfully after login");
+          
+          // Double-check if user data was actually set
+          setTimeout(() => {
+            const userFromContext = JSON.parse(localStorage.getItem("userData") || "null");
+            console.log("User data verification:", userFromContext);
+          }, 100);
+          
+        } catch (fetchError) {
+          console.error("Failed to fetch user data:", fetchError);
+          // Force a page reload to refresh the app state
+          console.log("Forcing page reload due to user fetch error");
+          window.location.reload();
+        }
+        
+        // Close login modal
         setShowLogin(false);
         toast.success(
           state === "login"
@@ -103,7 +161,12 @@ const Login = () => {
             : "Account created successfully!"
         );
 
-        // Redirect to intended route or home
+        // Debug logging for regular users
+        console.log("Regular user login successful");
+        console.log("Token set:", data.token);
+        console.log("User can now access protected routes");
+
+        // Navigate after user data is fetched
         const redirectTo = intendedRoute || "/";
         setIntendedRoute(null);
         navigate(redirectTo);

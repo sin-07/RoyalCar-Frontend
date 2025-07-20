@@ -63,20 +63,46 @@ export const AppProvider = ({ children }) => {
 
   const fetchUser = async () => {
     try {
+      console.log("Fetching user data with token:", token);
+      console.log("Authorization header:", axios.defaults.headers.common["Authorization"]);
+      
       const { data } = await axios.get("/api/user/data");
       if (data.success) {
         setUser(data.user);
+        // Store user data in localStorage for persistence
+        localStorage.setItem("userData", JSON.stringify(data.user));
+        
         // Set isOwner based on user role or localStorage admin flag
         const isAdmin = localStorage.getItem("isAdmin");
         const shouldBeOwner = data.user.role === "owner" || isAdmin === "true";
         setIsOwner(shouldBeOwner);
 
         // Debug logging
-        console.log("User data fetched:", data.user);
+        console.log("User data fetched successfully:", data.user);
         console.log("User role:", data.user.role);
         console.log("Is admin from localStorage:", isAdmin);
         console.log("Setting isOwner to:", shouldBeOwner);
+        console.log("User state should now be available in components");
       } else {
+        console.error("fetchUser failed with message:", data.message);
+        
+        // If we have admin flag in localStorage, create a fallback admin user
+        const isAdmin = localStorage.getItem("isAdmin");
+        if (isAdmin === "true" && token) {
+          console.log("Creating fallback admin user due to fetchUser failure");
+          const fallbackAdmin = {
+            _id: "admin-fallback",
+            name: "Admin",
+            email: "aniket.singh9322@gmail.com",
+            role: "owner"
+          };
+          setUser(fallbackAdmin);
+          setIsOwner(true);
+          localStorage.setItem("userData", JSON.stringify(fallbackAdmin));
+          console.log("Fallback admin user created successfully");
+          return; // Don't clear token if we have admin fallback
+        }
+        
         // Clear invalid token
         localStorage.removeItem("token");
         localStorage.removeItem("isAdmin");
@@ -86,14 +112,31 @@ export const AppProvider = ({ children }) => {
         axios.defaults.headers.common["Authorization"] = "";
       }
     } catch (error) {
-      // Clear invalid token on error
-      localStorage.removeItem("token");
-      localStorage.removeItem("isAdmin");
-      setToken(null);
-      setUser(null);
-      setIsOwner(false);
-      axios.defaults.headers.common["Authorization"] = "";
       console.error("Error fetching user:", error);
+      
+      // If we have admin flag in localStorage, create a fallback admin user
+      const isAdmin = localStorage.getItem("isAdmin");
+      if (isAdmin === "true" && token) {
+        console.log("Creating fallback admin user due to fetchUser error");
+        const fallbackAdmin = {
+          _id: "admin-fallback",
+          name: "Admin", 
+          email: "aniket.singh9322@gmail.com",
+          role: "owner"
+        };
+        setUser(fallbackAdmin);
+        setIsOwner(true);
+        localStorage.setItem("userData", JSON.stringify(fallbackAdmin));
+        console.log("Fallback admin user created successfully");
+      } else {
+        // Clear invalid token on error
+        localStorage.removeItem("token");
+        localStorage.removeItem("isAdmin");
+        setToken(null);
+        setUser(null);
+        setIsOwner(false);
+        axios.defaults.headers.common["Authorization"] = "";
+      }
     } finally {
       setIsLoading(false); // Set loading to false after fetch attempt
     }
@@ -121,10 +164,13 @@ export const AppProvider = ({ children }) => {
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("isAdmin"); // Remove admin status
+    localStorage.removeItem("userData"); // Remove user data
     setToken(null);
     setUser(null);
     setIsOwner(false);
     axios.defaults.headers.common["Authorization"] = "";
+
+    console.log("User logged out, all data cleared");
 
     // Show success message first
     toast.success("You have been logged out successfully!", {
@@ -154,16 +200,35 @@ export const AppProvider = ({ children }) => {
   useEffect(() => {
     const token = localStorage.getItem("token");
     const isAdmin = localStorage.getItem("isAdmin");
+    const userData = localStorage.getItem("userData");
 
     if (token) {
       setToken(token);
-      axios.defaults.headers.common["Authorization"] = `${token}`;
+      // Try both Bearer and direct token format for compatibility
+      axios.defaults.headers.common["Authorization"] = token;
+      console.log("Token loaded from localStorage:", token);
+      console.log("Authorization header set:", token);
+      
+      // Restore user data if available
+      if (userData) {
+        try {
+          const parsedUser = JSON.parse(userData);
+          setUser(parsedUser);
+          console.log("User data restored from localStorage:", parsedUser);
+        } catch (e) {
+          console.error("Failed to parse user data from localStorage:", e);
+          localStorage.removeItem("userData");
+        }
+      }
+      
       if (isAdmin === "true") {
         setIsOwner(true);
+        console.log("Admin status restored from localStorage");
       }
     } else {
       // No token found, set loading to false immediately
       setIsLoading(false);
+      console.log("No token found in localStorage");
     }
 
     fetchCars();

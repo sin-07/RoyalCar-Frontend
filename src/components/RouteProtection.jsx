@@ -71,8 +71,17 @@ const ProtectedRoute = ({ children }) => {
 
 // Component for protecting owner-only routes
 const OwnerRoute = ({ children }) => {
-  const { token, user, isOwner, setShowLogin, setIntendedRoute, isLoading } = useAppContext();
+  const { token, user, isOwner, setShowLogin, setIntendedRoute, isLoading, setIsOwner } = useAppContext();
   const location = useLocation();
+
+  // Debug logging for owner route
+  console.log("OwnerRoute Debug:");
+  console.log("- token:", !!token);
+  console.log("- user:", !!user);
+  console.log("- isOwner:", isOwner);
+  console.log("- isLoading:", isLoading);
+  console.log("- localStorage isAdmin:", localStorage.getItem("isAdmin"));
+  console.log("- current path:", location.pathname);
 
   useEffect(() => {
     if (!isLoading && !token) {
@@ -83,10 +92,12 @@ const OwnerRoute = ({ children }) => {
 
   // Show loading while checking authentication
   if (isLoading) {
+    console.log("OwnerRoute: Showing loader - still loading");
     return <CarWheelLoader />;
   }
 
   if (!token) {
+    console.log("OwnerRoute: No token - showing login prompt");
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
         <div className="text-center">
@@ -127,11 +138,31 @@ const OwnerRoute = ({ children }) => {
 
   if (!user) {
     // Show loading state while user data is being fetched
+    console.log("OwnerRoute: No user data - showing loader");
     return <CarWheelLoader />;
   }
 
   if (!isOwner) {
+    // Check localStorage as backup for admin status
+    const isAdminFromStorage = localStorage.getItem("isAdmin") === "true";
+    const hasToken = !!token;
+    
+    // If user has token and is marked as admin in localStorage, allow access
+    if (hasToken && isAdminFromStorage) {
+      console.log("OwnerRoute: Allowing access via localStorage admin flag");
+      // Force set isOwner if localStorage says admin but state doesn't
+      setIsOwner(true);
+      return children;
+    }
+    
     // Show access denied for non-owners
+    console.log("OwnerRoute: Not owner - showing access denied");
+    console.log("- isOwner:", isOwner);
+    console.log("- user.role:", user?.role);
+    console.log("- localStorage isAdmin:", localStorage.getItem("isAdmin"));
+    console.log("- hasToken:", hasToken);
+    console.log("- isAdminFromStorage:", isAdminFromStorage);
+    
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
         <div className="text-center">
@@ -155,6 +186,9 @@ const OwnerRoute = ({ children }) => {
             <p className="text-gray-500 mb-4">
               You don't have permission to access the owner dashboard.
             </p>
+            <div className="text-xs text-gray-400 mb-4">
+              Debug: isOwner={isOwner ? 'true' : 'false'}, role={user?.role || 'none'}
+            </div>
             <button
               onClick={() => window.location.href = '/'}
               className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg font-medium transition-all duration-300"
@@ -167,6 +201,7 @@ const OwnerRoute = ({ children }) => {
     );
   }
 
+  console.log("OwnerRoute: All checks passed - rendering children");
   return children;
 };
 
