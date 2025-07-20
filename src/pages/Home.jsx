@@ -102,10 +102,10 @@ const Home = () => {
     >
       <Hero />
       <main className="w-full bg-white">
-        <FeaturedSection />
+        {/* <FeaturedSection /> */}
         <Banner />
-        <Testimonial />
         <Newsletter />
+        <Testimonial />
       </main>
     </motion.div>
   )

@@ -4,10 +4,34 @@
 
 *{
   font-family: "Outfit", sans-serif;
+  box-sizing: border-box ;
+
 }
 .error {
   color: red;
   margin-top: 10px;
   font-weight: bold;
+}
+
+/* Hide scrollbars for all elements */
+* {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+}
+
+/* Hide scrollbars for webkit browsers (Chrome, Safari, Edge) */
+*::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbars for the entire page */
+html, body {
+  overflow-x: hidden; /* Hide horizontal scrollbar */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+}
+
+html::-webkit-scrollbar, body::-webkit-scrollbar {
+  display: none;
 }
 
