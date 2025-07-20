@@ -3,12 +3,15 @@ import axios from 'axios'
 import {toast} from 'react-hot-toast'
 import { useNavigate } from "react-router-dom";
 
-axios.defaults.baseURL = import.meta.env.VITE_BASE_URL
+// Set base URL with fallback
+const baseURL = import.meta.env.VITE_BASE_URL || 'https://royalcar-backend-2lg9.onrender.com';
+axios.defaults.baseURL = baseURL;
 
 // Debug logging
 console.log('Environment Variables:');
 console.log('VITE_BASE_URL:', import.meta.env.VITE_BASE_URL);
 console.log('VITE_CURRENCY:', import.meta.env.VITE_CURRENCY);
+console.log('Final baseURL:', baseURL);
 console.log('axios.defaults.baseURL:', axios.defaults.baseURL);
 
 export const AppContext = createContext();
@@ -30,6 +33,21 @@ export const AppProvider = ({ children })=>{
     const [cars, setCars] = useState([])
 
     // Function to check if user is logged in
+    // Test API connection on app load
+    useEffect(() => {
+        const testConnection = async () => {
+            try {
+                console.log('Testing backend connection...');
+                const response = await axios.get('/');
+                console.log('Backend connection successful:', response.data);
+            } catch (error) {
+                console.error('Backend connection failed:', error.message);
+                console.error('Error details:', error.response?.data || error);
+            }
+        };
+        testConnection();
+    }, []);
+
     const fetchUser = async ()=>{
         try {
            const {data} = await axios.get('/api/user/data')
