@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useAppContext } from "../context/AppContext";
 import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
@@ -13,6 +13,10 @@ const ForgotPassword = ({ onClose, onBackToLogin }) => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [countdown, setCountdown] = useState(0);
+  const [verificationToken, setVerificationToken] = useState("");
+  
+  // Use ref as backup for verification token
+  const verificationTokenRef = useRef("");
 
   // Countdown timer for resend OTP
   useEffect(() => {
@@ -96,14 +100,30 @@ const ForgotPassword = ({ onClose, onBackToLogin }) => {
 
     setIsLoading(true);
     try {
-      const { data } = await axios.post('/api/user/verify-password-reset-otp', { 
+      const response = await axios.post('/api/user/verify-password-reset-otp', { 
         email, 
         otp: otpString
       });
       
+      const { data } = response;
+      
       if (data.success) {
+        const receivedToken = data.verificationToken;
+        
+        if (!receivedToken) {
+          toast.error("Server error: No verification token received. Please try again.");
+          return;
+        }
+        
+        setVerificationToken(receivedToken);
+        verificationTokenRef.current = receivedToken;
+        
         toast.success("Code verified! Please set your new password.");
-        setStep(3);
+        
+        // Add a small delay before changing step to ensure state update
+        setTimeout(() => {
+          setStep(3);
+        }, 150);
       } else {
         toast.error(data.message || "Invalid or expired code");
       }
@@ -126,16 +146,28 @@ const ForgotPassword = ({ onClose, onBackToLogin }) => {
       return;
     }
 
+    // Use ref as fallback if state is undefined
+    const currentToken = verificationToken || verificationTokenRef.current;
+    
+    if (!currentToken) {
+      toast.error("Verification token missing. Please verify OTP again.");
+      setStep(2);
+      return;
+    }
+
     setIsLoading(true);
     try {
       const { data } = await axios.post('/api/user/reset-password', { 
         email, 
-        otp: otp.join(""), 
+        verificationToken: currentToken, 
         newPassword 
       });
       
       if (data.success) {
         toast.success("Password reset successfully!");
+        // Clear the verification token
+        setVerificationToken("");
+        verificationTokenRef.current = "";
         onBackToLogin();
       } else {
         toast.error(data.message || "Failed to reset password");
@@ -308,6 +340,14 @@ const ForgotPassword = ({ onClose, onBackToLogin }) => {
                 exit={{ opacity: 0, x: -50 }}
                 transition={{ duration: 0.3 }}
               >
+                {/* Debug info - remove in production */}
+                {(verificationToken || verificationTokenRef.current) && (
+                  <div className="bg-gray-100 p-2 rounded text-xs text-gray-600">
+                    State Token: {verificationToken ? verificationToken.substring(0, 8) + "..." : "undefined"}<br/>
+                    Ref Token: {verificationTokenRef.current ? verificationTokenRef.current.substring(0, 8) + "..." : "undefined"}
+                  </div>
+                )}
+                
                 <div>
                   <p className="mb-2 font-medium">New Password</p>
                   <input
