@@ -165,9 +165,9 @@ const OtpVerification = () => {
             initial={{ scale: 0.8 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.2, duration: 0.5 }}
-            className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4"
+            className="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4 p-2"
           >
-            <img src={assets.logo} alt="Logo" className="w-12 h-12" />
+            <img src={assets.royalcarslogo} alt="Royal Cars Logo" className="w-full h-full object-contain" />
           </motion.div>
           
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Verify Your Email</h1>

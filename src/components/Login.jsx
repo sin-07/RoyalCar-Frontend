@@ -3,6 +3,7 @@ import { useAppContext } from "../context/AppContext";
 import toast from "react-hot-toast";
 import { useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import ForgotPassword from "./ForgotPassword";
 
 const Login = () => {
   const {
@@ -25,6 +26,7 @@ const Login = () => {
   const [mobile, setMobile] = React.useState("");
   const [drivingLicense, setDrivingLicense] = React.useState("");
   const [isExiting, setIsExiting] = React.useState(false);
+  const [showForgotPassword, setShowForgotPassword] = React.useState(false);
 
   // Handle successful registration callback from OTP verification
   React.useEffect(() => {
@@ -463,7 +465,18 @@ const Login = () => {
               </div>
 
               <div className="w-full">
-                <p>Password</p>
+                <div className="flex justify-between items-center">
+                  <p>Password</p>
+                  {state === "login" && (
+                    <button
+                      type="button"
+                      onClick={() => setShowForgotPassword(true)}
+                      className="text-green-600 hover:text-green-700 text-xs hover:underline transition-all"
+                    >
+                      Forgot Password?
+                    </button>
+                  )}
+                </div>
                 <input
                   onChange={(e) => setPassword(e.target.value)}
                   value={password}
@@ -543,6 +556,16 @@ const Login = () => {
           </motion.form>
         </AnimatePresence>
       </div>
+
+      {/* Forgot Password Modal */}
+      <AnimatePresence>
+        {showForgotPassword && (
+          <ForgotPassword
+            onClose={() => setShowForgotPassword(false)}
+            onBackToLogin={() => setShowForgotPassword(false)}
+          />
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };
