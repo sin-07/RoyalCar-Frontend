@@ -76,6 +76,48 @@ html::-webkit-scrollbar {
 html, body {
   overflow-x: hidden; /* Hide horizontal scrollbar */
   overflow-y: auto; /* Keep vertical scroll functionality */
+  scroll-behavior: smooth; /* Smooth scrolling */
+  -webkit-overflow-scrolling: touch; /* iOS smooth scrolling */
+}
+
+/* Performance optimizations for smooth scrolling and touch */
+* {
+  -webkit-transform: translateZ(0); /* Hardware acceleration */
+  transform: translateZ(0); /* Hardware acceleration */
+  -webkit-backface-visibility: hidden; /* Prevent flickering */
+  backface-visibility: hidden; /* Prevent flickering */
+  -webkit-perspective: 1000px; /* 3D rendering context */
+  perspective: 1000px; /* 3D rendering context */
+  will-change: auto; /* Optimize for changes */
+  -webkit-tap-highlight-color: transparent; /* Remove tap highlight */
+  -webkit-touch-callout: none; /* Disable callout */
+  -webkit-user-select: none; /* Disable text selection */
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Re-enable text selection for inputs and text areas */
+input, textarea, [contenteditable] {
+  -webkit-user-select: auto;
+  -moz-user-select: auto;
+  -ms-user-select: auto;
+  user-select: auto;
+}
+
+/* Smooth momentum scrolling for mobile */
+.scroll-container {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Touch-friendly button styles */
+button, a, [role="button"] {
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+  touch-action: manipulation; /* Faster touch response */
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
 /* CSS Custom Properties */
@@ -84,4 +126,36 @@ html, body {
   --color-primary-dull: #1F58D8;
   --color-light: #F1F5F9;
   --color-borderColor: #c4c7d2;
+}
+
+/* Mobile-specific optimizations */
+@media (max-width: 768px) {
+  /* Reduce animation complexity on mobile */
+  * {
+    animation-duration: 0.3s !important;
+    transition-duration: 0.2s !important;
+  }
+  
+  /* Better touch targets */
+  button, a, [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Prevent zoom on input focus */
+  input, select, textarea {
+    font-size: 16px;
+  }
+}
+
+/* High performance scrolling */
+.scroll-smooth {
+  scroll-behavior: smooth;
+}
+
+/* GPU acceleration for animations */
+.gpu-accelerated {
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }

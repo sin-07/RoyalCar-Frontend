@@ -100,13 +100,13 @@ const TotalCars = () => {
         >
           <motion.div 
             animate={{ rotate: 360 }}
-            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
             className="rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"
           ></motion.div>
           <motion.p 
-            initial={{ y: 10, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.2 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.1 }}
             className="text-gray-600"
           >
             Loading cars...
@@ -120,14 +120,14 @@ const TotalCars = () => {
     <motion.div 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 0.6 }}
-      className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50"
+      transition={{ duration: 0.4 }}
+      className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 scroll-container"
     >
       {/* Header Section */}
       <motion.div 
-        initial={{ y: -50, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.4 }}
         className="bg-white py-16"
       >
         <Title
@@ -137,16 +137,16 @@ const TotalCars = () => {
       </motion.div>
 
       <motion.div 
-        initial={{ y: 30, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.8, delay: 0.2 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3, delay: 0.1 }}
         className="p-6 max-w-7xl mx-auto"
       >
         {/* Stats Section */}
         <motion.div 
-          initial={{ y: 50, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3, delay: 0.2 }}
           className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 -mt-8 z-20 relative"
         >
           {[
@@ -178,9 +178,9 @@ const TotalCars = () => {
 
         {/* Search and Filter Section */}
         <motion.div 
-          initial={{ y: 30, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.8 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3, delay: 0.3 }}
           className="bg-white rounded-2xl shadow-2xl p-6 border border-gray-100 mb-8"
         >
           <div className="grid md:grid-cols-2 gap-6">
@@ -315,37 +315,31 @@ const TotalCars = () => {
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 1 }}
+          transition={{ duration: 0.4 }}
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
         >
           <AnimatePresence mode="wait">
             {filteredCars.map((car, index) => (
               <motion.div
                 key={car._id}
-                initial={{ opacity: 0, scale: 0.8, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.8, y: -20 }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
                 transition={{ 
-                  duration: 0.5, 
-                  delay: index * 0.1,
-                  type: "spring",
-                  stiffness: 100
+                  duration: 0.3,
+                  delay: Math.min(index * 0.05, 0.5), // Limit max delay
+                  ease: "easeOut"
                 }}
                 whileHover={{ 
-                  scale: 1.05, 
-                  y: -10,
-                  transition: { duration: 0.2 }
+                  y: -5,
+                  transition: { duration: 0.15 }
                 }}
                 className="group relative cursor-pointer"
                 onClick={() => handleCarClick(car._id)}
               >
                 {/* Main Card */}
                 <motion.div 
-                  whileHover={{ 
-                    boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
-                    transition: { duration: 0.3 }
-                  }}
-                  className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform overflow-hidden border border-gray-100"
+                  className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-200 transform overflow-hidden border border-gray-100"
                 >
                   <CarCard car={car} />
 
