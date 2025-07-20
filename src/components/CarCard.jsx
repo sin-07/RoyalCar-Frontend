@@ -2,13 +2,25 @@ import React from 'react'
 import { assets } from '../assets/assets'
 import { useNavigate } from 'react-router-dom'
 
-const CarCard = ({car}) => {
+const CarCard = ({car, onClick}) => {
 
     const currency = import.meta.env.VITE_CURRENCY
     const navigate = useNavigate()
 
+    const handleClick = (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      
+      if (onClick) {
+        onClick(car);
+      } else {
+        navigate(`/car-details/${car._id}`);
+        scrollTo(0,0);
+      }
+    }
+
   return (
-    <div onClick={()=> {navigate(`/car-details/${car._id}`); scrollTo(0,0)}} className='rounded-xl overflow-hidden cursor-pointer'>
+    <div onClick={handleClick} className='rounded-xl overflow-hidden cursor-pointer'>
       
       <div className='relative h-48 overflow-hidden'> 
         <img src={car.image} alt="Car Image" className='w-full h-full object-cover transition-transform duration-500 group-hover:scale-105'/>
