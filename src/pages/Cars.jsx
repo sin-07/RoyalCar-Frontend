@@ -5,7 +5,7 @@ import toast from "react-hot-toast";
 import CarCard from "../components/CarCard";
 import Title from "../components/Title";
 import CarWheelLoader from "../components/CarWheelLoader";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 import moment from "moment";
 
 const Cars = () => {
@@ -100,50 +100,110 @@ const Cars = () => {
   }, [pickupDateTime, returnDateTime]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.6 }}
+      className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50"
+    >
       {/* Header Section */}
-      <div className="bg-white py-16 animate-fade-in">
+      <motion.div 
+        initial={{ opacity: 0, y: -50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7, ease: "easeOut" }}
+        className="bg-white py-16"
+      >
         <Title
           title="Available Cars"
           subTitle="Choose your perfect ride for your journey"
         />
-      </div>
+      </motion.div>
 
       {!pickupDateTime || !returnDateTime ? (
-        <div className="p-6 max-w-7xl mx-auto animate-fade-in-up">
-          <div className="text-center py-16">
-            <div className="bg-white rounded-2xl shadow-lg p-12 max-w-md mx-auto transform transition-all duration-500 hover:scale-105 hover:shadow-2xl">
-              <svg
-                className="w-16 h-16 text-blue-400 mx-auto mb-4 animate-bounce"
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="p-6 max-w-7xl mx-auto"
+        >
+          <motion.div 
+            initial={{ y: 50, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="text-center py-16"
+          >
+            <motion.div 
+              initial={{ scale: 0.8, rotateY: -15 }}
+              animate={{ scale: 1, rotateY: 0 }}
+              transition={{ duration: 0.8, delay: 0.6, type: "spring", stiffness: 100 }}
+              whileHover={{ 
+                scale: 1.05, 
+                rotateY: 5,
+                transition: { duration: 0.3 }
+              }}
+              className="bg-white rounded-2xl shadow-lg p-12 max-w-md mx-auto transform transition-all duration-500 hover:shadow-2xl"
+            >
+              <motion.svg
+                initial={{ scale: 0, rotate: -180 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ duration: 0.8, delay: 0.8, type: "spring" }}
+                className="w-16 h-16 text-blue-400 mx-auto mb-4"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
               >
-                <path
+                <motion.path
+                  initial={{ pathLength: 0 }}
+                  animate={{ pathLength: 1 }}
+                  transition={{ duration: 1.5, delay: 1 }}
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
                   d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                 />
-              </svg>
-              <h3 className="text-xl font-semibold text-gray-700 mb-2">
+              </motion.svg>
+              <motion.h3 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 1.2 }}
+                className="text-xl font-semibold text-gray-700 mb-2"
+              >
                 Booking Details Required
-              </h3>
-              <p className="text-gray-500 mb-4">
+              </motion.h3>
+              <motion.p 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 1.4 }}
+                className="text-gray-500 mb-4"
+              >
                 Please select your pickup and return dates from the home page to
                 view available cars.
-              </p>
-              <button
+              </motion.p>
+              <motion.button
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5, delay: 1.6 }}
+                whileHover={{ 
+                  scale: 1.05, 
+                  boxShadow: "0 10px 25px rgba(59, 130, 246, 0.3)",
+                  transition: { duration: 0.2 }
+                }}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => navigate("/")}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-all duration-300 transform hover:scale-105 hover:shadow-lg focus:ring-4 focus:ring-blue-300"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-all duration-300 transform focus:ring-4 focus:ring-blue-300"
               >
                 Go to Home Page
-              </button>
-            </div>
-          </div>
-        </div>
+              </motion.button>
+            </motion.div>
+          </motion.div>
+        </motion.div>
       ) : (
-        <div className="p-6 max-w-7xl mx-auto animate-fade-in-up">
+        <motion.div 
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+          className="p-6 max-w-7xl mx-auto"
+        >
           {/* Show loading screen while fetching data */}
           {loading && (
             <div className="fixed inset-0 bg-white/90 backdrop-blur-sm z-50 flex flex-col items-center justify-center">
@@ -177,8 +237,20 @@ const Cars = () => {
 
           {/* Search Bar - Only show when not loading */}
           {!loading && (
-            <div className="relative mb-8 -mt-8 z-20 animate-slide-down">
-              <div className="bg-white rounded-2xl shadow-2xl p-6 border border-gray-100 transform transition-all duration-300 hover:shadow-3xl hover:scale-[1.02]">
+            <motion.div 
+              initial={{ opacity: 0, y: -30, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="relative mb-8 -mt-8 z-20"
+            >
+              <motion.div 
+                whileHover={{ 
+                  scale: 1.02,
+                  boxShadow: "0 25px 50px rgba(0, 0, 0, 0.15)",
+                  transition: { duration: 0.3 }
+                }}
+                className="bg-white rounded-2xl shadow-2xl p-6 border border-gray-100 transform transition-all duration-300"
+              >
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                     <svg
@@ -222,21 +294,44 @@ const Cars = () => {
                     </button>
                   )}
                 </div>
-              </div>
-            </div>
+              </motion.div>
+            </motion.div>
           )}
 
           {/* Car Grid - Only show when not loading */}
           {!loading && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-              {cars
-                .filter(({ car }) =>
-                  `${car.brand} ${car.model}`
-                    .toLowerCase()
-                    .includes(input.toLowerCase())
-                )
-                .map(({ car, available, availableAt }) => (
-                  <div key={car._id} className="group relative">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"
+            >
+              <AnimatePresence mode="wait">
+                {cars
+                  .filter(({ car }) =>
+                    `${car.brand} ${car.model}`
+                      .toLowerCase()
+                      .includes(input.toLowerCase())
+                  )
+                  .map(({ car, available, availableAt }, index) => (
+                    <motion.div 
+                      key={car._id} 
+                      initial={{ opacity: 0, y: 50, scale: 0.9 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -50, scale: 0.9 }}
+                      transition={{ 
+                        duration: 0.5, 
+                        delay: index * 0.1,
+                        type: "spring",
+                        stiffness: 100
+                      }}
+                      whileHover={{ 
+                        y: -10,
+                        scale: 1.02,
+                        transition: { duration: 0.3 }
+                      }}
+                      className="group relative"
+                    >
                     {/* Main Card */}
                     <div className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 overflow-hidden border border-gray-100">
                       {/* Car Card Component */}
@@ -327,45 +422,85 @@ const Cars = () => {
                     </div>
 
                     {/* Floating Gradient Border */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-blue-400 via-purple-500 to-indigo-600 rounded-2xl opacity-0 group-hover:opacity-20 transition-opacity duration-300 -z-10 blur-xl"></div>
-                  </div>
+                    <motion.div 
+                      initial={{ opacity: 0 }}
+                      whileHover={{ opacity: 0.2 }}
+                      transition={{ duration: 0.3 }}
+                      className="absolute inset-0 bg-gradient-to-r from-blue-400 via-purple-500 to-indigo-600 rounded-2xl opacity-0 transition-opacity duration-300 -z-10 blur-xl"
+                    ></motion.div>
+                  </motion.div>
                 ))}
-            </div>
+              </AnimatePresence>
+            </motion.div>
           )}
 
           {/* No Results Message - Only show when not loading and data has been fetched */}
-          {!loading && dataFetched && cars.filter(({ car }) =>
-            `${car.brand} ${car.model}`
-              .toLowerCase()
-              .includes(input.toLowerCase())
-          ).length === 0 && (
-            <div className="text-center py-16">
-              <div className="bg-white rounded-2xl shadow-lg p-12 max-w-md mx-auto">
-                <svg
-                  className="w-16 h-16 text-gray-400 mx-auto mb-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+          <AnimatePresence>
+            {!loading && dataFetched && cars.filter(({ car }) =>
+              `${car.brand} ${car.model}`
+                .toLowerCase()
+                .includes(input.toLowerCase())
+            ).length === 0 && (
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.8, y: 50 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.8, y: -50 }}
+                transition={{ duration: 0.6, type: "spring", stiffness: 100 }}
+                className="text-center py-16"
+              >
+                <motion.div 
+                  initial={{ rotateY: -30, scale: 0.9 }}
+                  animate={{ rotateY: 0, scale: 1 }}
+                  transition={{ duration: 0.8, delay: 0.2 }}
+                  whileHover={{ 
+                    scale: 1.05, 
+                    rotateY: 5,
+                    transition: { duration: 0.3 }
+                  }}
+                  className="bg-white rounded-2xl shadow-lg p-12 max-w-md mx-auto"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9.172 16.172a4 4 0 115.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.47-.881-6.08-2.33"
-                  />
-                </svg>
-                <h3 className="text-xl font-semibold text-gray-700 mb-2">
-                  No cars found
-                </h3>
-                <p className="text-gray-500">
-                  Try adjusting your search terms or check back later.
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
+                  <motion.svg
+                    initial={{ scale: 0, rotate: -180 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{ duration: 1, delay: 0.4, type: "spring" }}
+                    className="w-16 h-16 text-gray-400 mx-auto mb-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <motion.path
+                      initial={{ pathLength: 0, opacity: 0 }}
+                      animate={{ pathLength: 1, opacity: 1 }}
+                      transition={{ duration: 1.5, delay: 0.8 }}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9.172 16.172a4 4 0 115.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.47-.881-6.08-2.33"
+                    />
+                  </motion.svg>
+                  <motion.h3 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 1 }}
+                    className="text-xl font-semibold text-gray-700 mb-2"
+                  >
+                    No cars found
+                  </motion.h3>
+                  <motion.p 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 1.2 }}
+                    className="text-gray-500"
+                  >
+                    Try adjusting your search terms or check back later.
+                  </motion.p>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
       )}
-    </div>
+    </motion.div>
   );
 };
 
