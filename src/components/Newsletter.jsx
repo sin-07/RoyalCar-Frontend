@@ -8,7 +8,8 @@ const Newsletter = () => {
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
       viewport={{ once: true, amount: 0.3 }}
-      className="flex flex-col items-center justify-center text-center space-y-2 max-md:px-4 my-10 mb-40"
+      className="flex flex-col items-center justify-center text-center space-y-2 max-md:px-4 my-10 mb-40 bg-white py-20"
+      style={{ minHeight: '300px' }}
     >
       <motion.h1
         initial={{ opacity: 0, y: 20 }}

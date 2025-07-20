@@ -18,9 +18,13 @@ const Navbar = () => {
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className={`flex items-center justify-between px-6 md:px-10 lg:px-10 xl:px-10 py-4 text-gray-600 border-b border-borderColor relative transition-all ${
+      className={`flex items-center justify-between px-6 md:px-10 lg:px-10 xl:px-10 py-4 text-gray-600 border-b border-borderColor relative transition-all z-50 ${
         location.pathname === "/" && "bg-light"
       }`}
+      style={{
+        position: 'relative',
+        zIndex: 9999, // Ensure navbar is always on top
+      }}
     >
       <Link to="/">
         <motion.img
@@ -37,6 +41,7 @@ const Navbar = () => {
         } ${open ? "max-sm:translate-x-0" : "max-sm:translate-x-full"}`}
         style={{
           backgroundColor: "#ffffff",
+          zIndex: 9998, // Mobile menu just below navbar but above everything else
         }}
       >
         {menuLinks.map((link, index) => {

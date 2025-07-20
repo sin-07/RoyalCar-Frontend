@@ -146,6 +146,26 @@ button, a, [role="button"] {
   input, select, textarea {
     font-size: 16px;
   }
+
+  /* Disable background animations on mobile for performance */
+  .hero-container {
+    animation: none !important;
+    transform: none !important;
+  }
+
+  /* Improve mobile scrolling */
+  body {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: none;
+  }
+}
+
+/* Fix for hover effects on mobile */
+@media (hover: none) and (pointer: coarse) {
+  *:hover {
+    transform: none !important;
+    scale: none !important;
+  }
 }
 
 /* High performance scrolling */
@@ -158,4 +178,35 @@ button, a, [role="button"] {
   will-change: transform;
   transform: translateZ(0);
   backface-visibility: hidden;
+}
+
+/* Z-index hierarchy for consistent layering */
+.navbar {
+  z-index: 9999 !important;
+}
+
+.mobile-menu {
+  z-index: 9998 !important;
+}
+
+.hero-section {
+  z-index: 1 !important;
+}
+
+.modal, .login-modal {
+  z-index: 10000 !important;
+}
+
+/* Ensure navbar is always visible on mobile */
+@media (max-width: 768px) {
+  .navbar {
+    position: relative !important;
+    z-index: 9999 !important;
+    background-color: white !important;
+  }
+  
+  .hero-container {
+    position: relative !important;
+    z-index: 1 !important;
+  }
 }

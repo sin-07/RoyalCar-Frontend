@@ -47,34 +47,27 @@ const Hero = () => {
     <>
       <motion.div 
         className="hero-container relative bg-cover bg-center bg-no-repeat"
-        initial={{ scale: 1.1, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 1.5, ease: "easeOut" }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1, ease: "easeOut" }}
         style={{
           backgroundImage: `url(${ci3Image})`,
-          animation: 'backgroundZoom 15s ease-in-out infinite',
           width: '100vw',
           height: '100vh',
           minHeight: '100vh',
           maxWidth: '100%',
-          overflow: 'hidden'
+          overflow: 'hidden',
+          marginTop: '0px', // Ensure no gap with navbar
+          paddingTop: '72px', // Add padding to avoid navbar overlap
+          position: 'relative',
+          zIndex: 1 // Lower z-index than navbar
         }}
       >
         {/* Dark overlay for better text readability */}
-        <div className="absolute inset-0 bg-black/30 z-5"></div>
+        <div className="absolute inset-0 bg-black/30 z-2"></div>
         
         <style jsx>{`
-          @keyframes backgroundZoom {
-            0%, 100% {
-              background-size: cover;
-              transform: scale(1);
-            }
-            50% {
-              background-size: cover;
-              transform: scale(1.05);
-            }
-          }
-          
+          /* Remove background animation on mobile for better performance */
           .hero-container {
             background-attachment: fixed;
             background-position: center center;
@@ -85,9 +78,23 @@ const Hero = () => {
             height: 100vh;
             min-height: 100vh;
             overflow: hidden;
+            animation: backgroundZoom 20s ease-in-out infinite;
+            display: flex;
+            flex-direction: column;
           }
 
-          /* Mobile optimizations - Portrait and Landscape */
+          @keyframes backgroundZoom {
+            0%, 100% {
+              background-size: cover;
+              transform: scale(1);
+            }
+            50% {
+              background-size: cover;
+              transform: scale(1.05);
+            }
+          }
+
+          /* Mobile optimizations - Disable animation for performance */
           @media (max-width: 768px) {
             .hero-container {
               background-attachment: scroll;
@@ -96,23 +103,13 @@ const Hero = () => {
               min-height: 100vh;
               height: 100vh;
               width: 100vw;
-            }
-            
-            @keyframes backgroundZoom {
-              0%, 100% {
-                background-size: cover;
-                background-position: center center;
-                transform: scale(1);
-              }
-              50% {
-                background-size: cover;
-                background-position: center center;
-                transform: scale(1.03);
-              }
+              animation: none; /* Disable animation on mobile */
+              transform: none; /* Remove transforms */
+              padding-top: 64px; /* Account for mobile navbar (py-4 = ~64px) */
             }
           }
 
-          /* Tablet optimizations */
+          /* Tablet optimizations - Reduced animation */
           @media (min-width: 769px) and (max-width: 1024px) {
             .hero-container {
               background-attachment: scroll;
@@ -121,45 +118,63 @@ const Hero = () => {
               min-height: 100vh;
               height: 100vh;
               width: 100vw;
+              animation: backgroundZoomTablet 25s ease-in-out infinite;
+              padding-top: 72px; /* Account for tablet navbar */
             }
             
-            @keyframes backgroundZoom {
+            @keyframes backgroundZoomTablet {
               0%, 100% {
                 background-size: cover;
-                background-position: center center;
                 transform: scale(1);
               }
               50% {
                 background-size: cover;
-                background-position: center center;
-                transform: scale(1.04);
+                transform: scale(1.02);
               }
             }
           }
 
-          /* Large screens */
+          /* Large screens - Full animation */
           @media (min-width: 1025px) {
             .hero-container {
               background-attachment: fixed;
               background-position: center center;
               background-size: cover;
+              padding-top: 80px; /* Account for desktop navbar */
+            }
+          }
+
+          /* Ensure content doesn't overlap with navbar */
+          .hero-content {
+            padding-top: 20px;
+            min-height: calc(100vh - 100px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+          }
+
+          @media (max-width: 768px) {
+            .hero-content {
+              min-height: calc(100vh - 64px);
+              padding-top: 10px;
             }
           }
         `}</style>
         
         <motion.div 
-          className="relative z-10 h-screen flex flex-col justify-center items-center gap-6 md:gap-8 lg:gap-10 text-center px-4 py-4 md:py-0"
+          className="hero-content relative z-10 gap-6 md:gap-8 lg:gap-10 text-center px-4 py-4 md:py-0"
           initial={{ y: 50, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 1, delay: 0.5, ease: "easeOut" }}
-          style={{ minHeight: '100vh' }}
+          style={{ zIndex: 3 }} // Above overlay but below navbar
         >
           <motion.h1 
             className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-white bg-black/60 backdrop-blur-sm px-4 md:px-6 lg:px-8 py-2 md:py-3 lg:py-4 rounded-xl md:rounded-2xl shadow-2xl border border-white/20"
             initial={{ y: -30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.8, delay: 1, ease: "easeOut" }}
-            whileHover={{ scale: 1.05 }}
+            transition={{ duration: 0.6, delay: 0.3, ease: "easeOut" }}
+            whileHover={{ scale: 1.02 }}
           >
             Book Your Premium Car
           </motion.h1>
@@ -169,8 +184,8 @@ const Hero = () => {
             className="bg-white/90 backdrop-blur-md p-4 md:p-6 lg:p-8 shadow-2xl rounded-xl md:rounded-2xl flex flex-col md:flex-row gap-4 md:gap-6 w-full max-w-xs sm:max-w-sm md:max-w-4xl lg:max-w-5xl border border-white/40"
             initial={{ y: 30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.8, delay: 1.2, ease: "easeOut" }}
-            whileHover={{ boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)" }}
+            transition={{ duration: 0.6, delay: 0.5, ease: "easeOut" }}
+            whileHover={{ boxShadow: "0 20px 40px -12px rgba(0, 0, 0, 0.2)" }}
           >
             <div className="flex flex-col w-full">
               <label className="text-xs md:text-sm font-medium text-gray-700 mb-1 md:mb-2">Pickup Location</label>
@@ -233,7 +248,7 @@ const Hero = () => {
 
             <button
               type="submit"
-              className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-4 md:px-6 lg:px-8 py-2 md:py-3 lg:py-4 rounded-lg font-semibold transition-all duration-200 transform hover:scale-105 focus:ring-2 focus:ring-blue-200 focus:outline-none shadow-lg hover:shadow-xl mt-4 md:mt-6 lg:mt-0 md:self-end text-sm md:text-base"
+              className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-4 md:px-6 lg:px-8 py-2 md:py-3 lg:py-4 rounded-lg font-semibold transition-all duration-200 transform hover:scale-102 focus:ring-2 focus:ring-blue-200 focus:outline-none shadow-lg hover:shadow-xl mt-4 md:mt-6 lg:mt-0 md:self-end text-sm md:text-base touch-manipulation"
             >
               Search Cars
             </button>

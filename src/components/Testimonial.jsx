@@ -24,9 +24,9 @@ const Testimonial = () => {
     ];
 
   return (
-    <div className="py-28 px-6 md:px-16 lg:px-24 xl:px-44">
+    <div className="py-28 px-6 md:px-16 lg:px-24 xl:px-44 bg-gray-50" style={{ minHeight: '400px' }}>
             
-           <Title title="What Our Customers Say" subTitle="Discover why discerning travelers choose StayVenture for their luxury accommodations around the world."/>
+           <Title title="What Our Customers Say" subTitle="Discover why discerning travelers choose CarRental for their luxury accommodations around the world."/>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mt-18">
                 {testimonials.map((testimonial, index) => (
