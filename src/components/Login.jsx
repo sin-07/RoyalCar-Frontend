@@ -21,10 +21,123 @@ const Login = () => {
   const [name, setName] = React.useState("");
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
+  const [confirmPassword, setConfirmPassword] = React.useState("");
+  const [mobile, setMobile] = React.useState("");
+  const [drivingLicense, setDrivingLicense] = React.useState("");
   const [isExiting, setIsExiting] = React.useState(false);
+
+  // Handle successful registration callback from OTP verification
+  React.useEffect(() => {
+    if (location.state?.showLogin && location.state?.registrationSuccess) {
+      setState("login");
+      if (location.state?.userEmail) {
+        setEmail(location.state.userEmail);
+      }
+      toast.success("Registration successful! Please login with your credentials.");
+    }
+  }, [location.state]);
+
+  // Prevent background scroll when modal is open
+  React.useEffect(() => {
+    // Get the current scroll position
+    const scrollY = window.scrollY;
+    
+    // Disable scroll on mount - more comprehensive approach
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.width = '100%';
+    document.body.style.overflow = 'hidden';
+    
+    // Re-enable scroll on unmount
+    return () => {
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      document.body.style.overflow = '';
+      window.scrollTo(0, scrollY);
+    };
+  }, []);
+
+  // Handle browser back button
+  React.useEffect(() => {
+    const handlePopState = (event) => {
+      event.preventDefault();
+      handleClose();
+    };
+
+    // Add a dummy state to history to capture back button press
+    window.history.pushState({ modalOpen: true }, '');
+    
+    // Listen for popstate (back button)
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, []);
+
+  // Validation functions
+  const validateMobile = (mobile) => {
+    const mobileRegex = /^[0-9]{10}$/;
+    return mobileRegex.test(mobile);
+  };
+
+  const validatePasswords = () => {
+    return password === confirmPassword && password.length >= 6;
+  };
+
+  // Send OTP and redirect to verification page
+  const sendOtpAndRedirect = async () => {
+    try {
+      if (!email) {
+        toast.error("Please enter your email first");
+        return;
+      }
+
+      const { data } = await axios.post('/api/user/send-otp', { email });
+      
+      if (data.success) {
+        toast.success("OTP sent to your email!");
+        
+        // Prepare user data for OTP verification page
+        const userData = {
+          name,
+          email,
+          password,
+          mobile,
+          drivingLicense
+        };
+        
+        // Navigate to OTP verification page with user data
+        navigate('/verify-otp', { 
+          state: { userData } 
+        });
+        
+        // Close the login modal
+        handleClose();
+      } else {
+        toast.error(data.message || "Failed to send OTP");
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to send OTP");
+    }
+  };
 
   const handleClose = () => {
     setIsExiting(true);
+    
+    // Get current scroll position before restoring
+    const scrollY = parseInt(document.body.style.top || '0') * -1;
+    
+    // Re-enable background scroll
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.width = '';
+    document.body.style.overflow = '';
+    
+    // Restore scroll position
+    window.scrollTo(0, scrollY);
+    
     // Wait for exit animation to complete before actually closing
     setTimeout(() => {
       setShowLogin(false);
@@ -36,6 +149,34 @@ const Login = () => {
     try {
       event.preventDefault();
 
+      // Additional validation for signup
+      if (state === "register") {
+        if (!validateMobile(mobile)) {
+          toast.error("Please enter a valid 10-digit mobile number");
+          return;
+        }
+        
+        if (!validatePasswords()) {
+          toast.error("Passwords do not match or password is too short (minimum 6 characters)");
+          return;
+        }
+        
+        if (!drivingLicense.trim()) {
+          toast.error("Driving license number is required");
+          return;
+        }
+
+        // Check if all fields are filled
+        if (!name || !email || !password || !confirmPassword || !mobile || !drivingLicense) {
+          toast.error("All fields are required");
+          return;
+        }
+
+        // Send OTP and redirect to verification page
+        await sendOtpAndRedirect();
+        return;
+      }
+
       // Check for admin credentials
       if (email === "aniket.singh9322@gmail.com" && password === "Vicky@123") {
         // Use dedicated admin login endpoint
@@ -46,7 +187,6 @@ const Login = () => {
           });
 
           if (data.success) {
-
             // Set token first
             setToken(data.token);
             localStorage.setItem("token", data.token);
@@ -80,7 +220,6 @@ const Login = () => {
             return;
           }
         } catch (adminError) {
-
           const errorMessage =
             adminError.response?.data?.message ||
             adminError.message ||
@@ -96,6 +235,8 @@ const Login = () => {
         name,
         email,
         password,
+        mobile,
+        drivingLicense,
       });
 
       if (data.success) {
@@ -165,7 +306,9 @@ const Login = () => {
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative w-80 sm:w-[352px] h-[500px] m-auto perspective-1000"
+        className={`relative w-80 sm:w-[352px] m-auto perspective-1000 ${
+          state === "register" ? "h-[750px]" : "h-[500px]"
+        }`}
         style={{ perspective: "1000px" }}
       >
         <AnimatePresence mode="wait">
@@ -252,21 +395,58 @@ const Login = () => {
             >
               {state === "register" && (
                 <motion.div
-                  className="w-full"
+                  className="w-full space-y-4"
                   initial={{ height: 0, opacity: 0 }}
                   animate={{ height: "auto", opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
                   transition={{ duration: 0.3 }}
                 >
-                  <p>Name</p>
-                  <input
-                    onChange={(e) => setName(e.target.value)}
-                    value={name}
-                    placeholder="Enter your name"
-                    className="border border-gray-200 rounded w-full p-2 mt-1 outline-primary focus:border-primary transition-colors"
-                    type="text"
-                    required
-                  />
+                  <div>
+                    <p>Name</p>
+                    <input
+                      onChange={(e) => setName(e.target.value)}
+                      value={name}
+                      placeholder="Enter your name"
+                      className="border border-gray-200 rounded w-full p-2 mt-1 outline-primary focus:border-primary transition-colors"
+                      type="text"
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <p>Mobile Number</p>
+                    <input
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/\D/g, ''); // Only allow digits
+                        if (value.length <= 10) {
+                          setMobile(value);
+                        }
+                      }}
+                      value={mobile}
+                      placeholder="Enter 10-digit mobile number"
+                      className={`border rounded w-full p-2 mt-1 outline-primary transition-colors ${
+                        mobile && !validateMobile(mobile) ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-primary'
+                      }`}
+                      type="tel"
+                      maxLength="10"
+                      required
+                    />
+                    {mobile && !validateMobile(mobile) && (
+                      <p className="text-red-500 text-xs mt-1">Mobile number must be exactly 10 digits</p>
+                    )}
+                  </div>
+                  
+                  <div>
+                    <p>Driving License Number</p>
+                    <input
+                      onChange={(e) => setDrivingLicense(e.target.value)}
+                      value={drivingLicense}
+                      placeholder="Enter your driving license number"
+                      className="border border-gray-200 rounded w-full p-2 mt-1 outline-primary focus:border-primary transition-colors"
+                      type="text"
+                      required
+                    />
+                  </div>
                 </motion.div>
               )}
 
@@ -293,6 +473,31 @@ const Login = () => {
                   required
                 />
               </div>
+
+              {state === "register" && (
+                <motion.div
+                  className="w-full"
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <p>Confirm Password</p>
+                  <input
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    value={confirmPassword}
+                    placeholder="Confirm your password"
+                    className={`border rounded w-full p-2 mt-1 outline-primary transition-colors ${
+                      confirmPassword && password !== confirmPassword ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-primary'
+                    }`}
+                    type="password"
+                    required
+                  />
+                  {confirmPassword && password !== confirmPassword && (
+                    <p className="text-red-500 text-xs mt-1">Passwords do not match</p>
+                  )}
+                </motion.div>
+              )}
             </motion.div>
 
             <motion.div
@@ -325,12 +530,13 @@ const Login = () => {
             </motion.div>
 
             <motion.button
-              className="bg-gradient-to-r from-green-400 to-green-500 hover:from-green-500 hover:to-green-600 transition-all text-white w-full py-2 rounded-md cursor-pointer transform hover:scale-105 focus:scale-95"
+              className="bg-gradient-to-r from-green-400 to-green-500 hover:from-green-500 hover:to-green-600 transition-all text-white w-full py-2 rounded-md cursor-pointer transform hover:scale-105 focus:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.6, duration: 0.5 }}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
+              disabled={false}
             >
               {state === "register" ? "Create Account" : "Login"}
             </motion.button>

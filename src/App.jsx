@@ -13,6 +13,7 @@ import AddCar from './pages/owner/AddCar'
 import ManageCars from './pages/owner/ManageCars'
 import ManageBookings from './pages/owner/ManageBookings'
 import Login from './components/Login'
+import OtpVerification from './pages/OtpVerification'
 import { Toaster } from 'react-hot-toast'
 import { useAppContext } from './context/AppContext'
 import PaymentForm from './pages/PaymentForm'
@@ -71,6 +72,7 @@ const AppContent = () => {
           <Route path='/total-cars' element={<TotalCars />} />
           <Route path='/cars' element={<Cars />} />
           <Route path='/car-details/:id' element={<CarDetails />} />
+          <Route path='/verify-otp' element={<OtpVerification />} />
         
         {/* Protected routes - require authentication */}
         <Route 
