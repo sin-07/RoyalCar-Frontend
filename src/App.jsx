@@ -46,6 +46,7 @@ const AppContent = () => {
             </div>
           } />
           <Route path='/total-cars' element={<TotalCars />} />
+          <Route path='/cars' element={<Cars />} />
         
         {/* Protected routes - require authentication */}
         <Route 
@@ -53,14 +54,6 @@ const AppContent = () => {
           element={
             <ProtectedRoute>
               <CarDetails />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path='/cars' 
-          element={
-            <ProtectedRoute>
-              <Cars />
             </ProtectedRoute>
           } 
         />

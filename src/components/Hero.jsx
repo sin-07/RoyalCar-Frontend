@@ -25,14 +25,14 @@ const Hero = () => {
     const returnDT = new Date(returnDateTime);
     const now = new Date();
 
-    const hoursToPickup = (pickupDT - now) / (1000 * 60 * 60);
-    const durationHours = (returnDT - pickupDT) / (1000 * 60 * 60);
-
-    if (hoursToPickup < 24) {
-      alert("Pickup must be at least 24 hours from now.");
+    // Check if pickup time is in the past
+    if (pickupDT < now) {
+      alert("Pickup time cannot be in the past.");
       return;
     }
 
+    // Check if booking duration is at least 24 hours
+    const durationHours = (returnDT - pickupDT) / (1000 * 60 * 60);
     if (durationHours < 24) {
       alert("Booking must be at least 24 hours long.");
       return;

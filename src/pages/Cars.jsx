@@ -14,7 +14,7 @@ const Cars = () => {
   const pickupDateTime = searchParams.get("pickupDateTime");
   const returnDateTime = searchParams.get("returnDateTime");
 
-  const { axios } = useAppContext();
+  const { axios, token, user, setShowLogin, setIntendedRoute } = useAppContext();
 
   const [input, setInput] = useState("");
   const [cars, setCars] = useState([]);
@@ -39,6 +39,18 @@ const Cars = () => {
   };
 
   const handleBookNow = async (carId) => {
+    // Check if user is authenticated
+    if (!token || !user) {
+      // Set intended route to current page with search params
+      const currentRoute = `/cars?pickupLocation=${pickupLocation}&pickupDateTime=${pickupDateTime}&returnDateTime=${returnDateTime}`;
+      setIntendedRoute(currentRoute);
+      
+      // Show login modal
+      setShowLogin(true);
+      toast.error("Please login to book a car.");
+      return;
+    }
+
     try {
       const { data } = await axios.post("/api/bookings/create", {
         car: carId,
@@ -54,7 +66,6 @@ const Cars = () => {
       }
     } catch (err) {
       toast.error("Server error.");
-      console.error(err);
     }
   };
 
@@ -234,7 +245,7 @@ const Cars = () => {
                                 d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                               />
                             </svg>
-                            Book Now
+                            {token && user ? "Book Now" : "Login to Book"}
                           </span>
                         </button>
                       ) : (
