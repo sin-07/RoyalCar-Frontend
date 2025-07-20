@@ -36,13 +36,15 @@ const Navbar = () => {
         <div
           className="fixed inset-0 bg-black bg-opacity-50 sm:hidden z-30"
           onClick={() => setOpen(false)}
-          style={{ top: '73px' }}
+          style={{ top: "73px" }}
         />
       )}
 
       <div
         className={`max-sm:fixed max-sm:h-screen max-sm:w-full max-sm:top-[73px] max-sm:left-0 max-sm:border-t border-borderColor flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-8 max-sm:p-6 max-sm:pt-8 transition-all duration-300 max-sm:shadow-lg ${
-          location.pathname === "/" ? "max-sm:bg-white sm:bg-transparent" : "max-sm:bg-white sm:bg-transparent"
+          location.pathname === "/"
+            ? "max-sm:bg-white sm:bg-transparent"
+            : "max-sm:bg-white sm:bg-transparent"
         } ${open ? "max-sm:translate-x-0" : "max-sm:translate-x-full"}`}
         style={{
           zIndex: 40, // Lower than navbar but above content
@@ -104,7 +106,7 @@ const Navbar = () => {
               user ? logout() : setShowLogin(true);
               setOpen(false); // Hide mobile menu
             }}
-            className="cursor-pointer px-8 py-2 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 transition-all text-white font-bold rounded-lg"
+            className="cursor-pointer px-8 py-2 bg-gradient-to-r from-green-400 to-green-500 hover:from-green-500 hover:to-green-600 transition-all text-white font-bold rounded-lg"
           >
             {user ? "Logout" : "Login"}
           </button>
