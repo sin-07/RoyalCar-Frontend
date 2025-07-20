@@ -1,22 +1,22 @@
-import React from "react";
-import Hero from "../components/Hero";
-import FeaturedSection from "../components/FeaturedSection";
-import Banner from "../components/Banner";
-import Testimonial from "../components/Testimonial";
-import Newsletter from "../components/Newsletter";
+import React from 'react'
+import Hero from '../components/Hero'
+import FeaturedSection from '../components/FeaturedSection'
+import Banner from '../components/Banner'
+import Testimonial from '../components/Testimonial'
+import Newsletter from '../components/Newsletter'
 
 const Home = () => {
   return (
-    <div className="min-h-screen">
+    <div className="w-full">
       <Hero />
-      <div className="relative z-10">
+      <main className="w-full bg-white">
         <FeaturedSection />
         <Banner />
         <Testimonial />
         <Newsletter />
-      </div>
+      </main>
     </div>
-  );
-};
+  )
+}
 
-export default Home;
+export default Home

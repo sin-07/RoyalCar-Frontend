@@ -17,11 +17,18 @@ import { Toaster } from 'react-hot-toast'
 import { useAppContext } from './context/AppContext'
 import PaymentForm from './pages/PaymentForm'
 import { ProtectedRoute, OwnerRoute, PublicRoute } from './components/RouteProtection'
+import CarWheelLoader from './components/CarWheelLoader'
+import { LoadingProvider, useLoading } from './context/LoadingContext'
 
-const App = () => {
-
+const AppContent = () => {
   const { showLogin } = useAppContext()
+  const { isLoading } = useLoading()
   const isOwnerPath = useLocation().pathname.startsWith('/owner')
+
+  // Show loader during initial loading
+  if (isLoading) {
+    return <CarWheelLoader />
+  }
 
   return (
     <>
@@ -85,10 +92,16 @@ const App = () => {
         </Route>
       </Routes>
 
-
       {!isOwnerPath && <Footer />}
-
     </>
+  )
+}
+
+const App = () => {
+  return (
+    <LoadingProvider>
+      <AppContent />
+    </LoadingProvider>
   )
 }
 
