@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 import CarCard from "../components/CarCard";
 import Title from "../components/Title";
 import { motion, AnimatePresence } from "motion/react";
+import CarWheelLoader from "../components/CarWheelLoader";
 
 const TotalCars = () => {
   const navigate = useNavigate();
@@ -86,34 +87,7 @@ const TotalCars = () => {
   };
 
   if (loading) {
-    return (
-      <motion.div 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center"
-      >
-        <motion.div 
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.5 }}
-          className="text-center"
-        >
-          <motion.div 
-            animate={{ rotate: 360 }}
-            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-            className="rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"
-          ></motion.div>
-          <motion.p 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.1 }}
-            className="text-gray-600"
-          >
-            Loading cars...
-          </motion.p>
-        </motion.div>
-      </motion.div>
-    );
+    return <CarWheelLoader />;
   }
 
   return (

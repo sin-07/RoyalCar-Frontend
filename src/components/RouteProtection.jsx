@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
+import CarWheelLoader from './CarWheelLoader';
 
 // Component for protecting routes that require authentication
 const ProtectedRoute = ({ children }) => {
@@ -17,14 +18,7 @@ const ProtectedRoute = ({ children }) => {
 
   // Show loading while checking authentication
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
+    return <CarWheelLoader />;
   }
 
   if (!token) {
@@ -69,14 +63,7 @@ const ProtectedRoute = ({ children }) => {
 
   if (!user) {
     // Show loading state while user data is being fetched
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
+    return <CarWheelLoader />;
   }
 
   return children;
@@ -96,14 +83,7 @@ const OwnerRoute = ({ children }) => {
 
   // Show loading while checking authentication
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
+    return <CarWheelLoader />;
   }
 
   if (!token) {
@@ -147,14 +127,7 @@ const OwnerRoute = ({ children }) => {
 
   if (!user) {
     // Show loading state while user data is being fetched
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
+    return <CarWheelLoader />;
   }
 
   if (!isOwner) {

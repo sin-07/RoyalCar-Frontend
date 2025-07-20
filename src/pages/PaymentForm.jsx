@@ -5,6 +5,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import axios from "axios";
 import { useAppContext } from "../context/AppContext";
+import CarWheelLoader from "../components/CarWheelLoader";
 
 const PaymentForm = () => {
   const { bookingId } = useParams();
@@ -90,6 +91,11 @@ const PaymentForm = () => {
       setLoading(false);
     }
   };
+
+  // Show loading overlay during payment processing
+  if (loading) {
+    return <CarWheelLoader />;
+  }
 
   return (
     <form

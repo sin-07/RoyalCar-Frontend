@@ -53,6 +53,54 @@ const FeaturedSection = () => {
         ) : (
           <div className="col-span-full text-center py-12">
             <div className="bg-gray-100 rounded-lg p-8">
+              {/* Mini Car Wheel Loader */}
+              <div className="flex justify-center mb-4">
+                <svg 
+                  width="40" 
+                  height="40" 
+                  viewBox="0 0 100 100" 
+                  className="animate-spin"
+                  style={{ animationDuration: '1s' }}
+                >
+                  {/* Outer tire */}
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="45"
+                    fill="#2c2c2c"
+                    stroke="#1a1a1a"
+                    strokeWidth="2"
+                  />
+                  
+                  {/* Inner rim */}
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="35"
+                    fill="#c0c0c0"
+                    stroke="#a0a0a0"
+                    strokeWidth="1"
+                  />
+                  
+                  {/* Rim spokes */}
+                  <g stroke="#888" strokeWidth="2" strokeLinecap="round">
+                    <line x1="50" y1="15" x2="50" y2="35" />
+                    <line x1="50" y1="65" x2="50" y2="85" />
+                    <line x1="15" y1="50" x2="35" y2="50" />
+                    <line x1="65" y1="50" x2="85" y2="50" />
+                  </g>
+                  
+                  {/* Center hub */}
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="12"
+                    fill="#666"
+                    stroke="#444"
+                    strokeWidth="1"
+                  />
+                </svg>
+              </div>
               <h3 className="text-xl font-semibold text-gray-700 mb-2">
                 Loading Cars...
               </h3>

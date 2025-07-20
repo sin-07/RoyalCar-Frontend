@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { assets, dummyCarData } from '../assets/assets'
-import Loader from '../components/Loader'
+import CarWheelLoader from '../components/CarWheelLoader'
 import { useAppContext } from '../context/AppContext'
 import toast from 'react-hot-toast'
 import { motion } from 'motion/react'
@@ -149,7 +149,7 @@ const CarDetails = () => {
       </div>
 
     </div>
-  ) : <Loader />
+  ) : <CarWheelLoader />
 }
 
 export default CarDetails
