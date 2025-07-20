@@ -33,6 +33,7 @@ const App = () => {
       <Routes>
         {/* Public routes */}
         <Route path='/' element={<Home />} />
+        <Route path='/total-cars' element={<TotalCars />} />
         
         {/* Protected routes - require authentication */}
         <Route 
@@ -48,14 +49,6 @@ const App = () => {
           element={
             <ProtectedRoute>
               <Cars />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path='/total-cars' 
-          element={
-            <ProtectedRoute>
-              <TotalCars />
             </ProtectedRoute>
           } 
         />

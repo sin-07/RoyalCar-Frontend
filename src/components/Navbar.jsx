@@ -43,8 +43,8 @@ const Navbar = () => {
             key={index} 
             to={link.path}
             onClick={(e) => {
-              // Check if route requires authentication
-              const protectedRoutes = ['/cars', '/total-cars', '/my-bookings'];
+              // Check if route requires authentication (removed /total-cars from protected routes)
+              const protectedRoutes = ['/cars', '/my-bookings'];
               if (protectedRoutes.includes(link.path) && !user) {
                 e.preventDefault();
                 requireLogin('Please login to access this page', link.path);
@@ -69,7 +69,7 @@ const Navbar = () => {
             onClick={() => {
               user ? logout() : setShowLogin(true);
             }}
-            className="cursor-pointer px-8 py-2 bg-primary hover:bg-primary-dull transition-all text-white rounded-lg"
+            className="cursor-pointer px-8 py-2 bg-gradient-to-r from-green-500 to-green-600 hover:bg-green-800 transition-all text-white font-bold rounded-lg"
           >
             {user ? "Logout" : "Login"}
           </button>

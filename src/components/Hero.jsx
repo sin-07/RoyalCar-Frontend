@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
 import { assets } from "../assets/assets";
-import ci1Image from "../assets/ci1.jpg";
+import ci3Image from "../assets/ci3.jpg";
 
 const Hero = () => {
   const [pickupDateTime, setPickupDateTime] = useState("");
@@ -46,18 +46,55 @@ const Hero = () => {
     <>
       <motion.div 
         className="hero-container relative bg-cover bg-center bg-no-repeat min-h-screen"
+        initial={{ scale: 1.1, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 1.5, ease: "easeOut" }}
         style={{
-          backgroundImage: `url(${ci1Image})`,
+          backgroundImage: `url(${ci3Image})`,
+          animation: 'backgroundZoom 15s ease-in-out infinite',
         }}
       >
         {/* Overlay removed for debugging */}
+        <style jsx>{`
+          @keyframes backgroundZoom {
+            0%, 100% {
+              background-size: 100%;
+              transform: scale(1);
+            }
+            50% {
+              background-size: 105%;
+              transform: scale(1.02);
+            }
+          }
+          .hero-container {
+            background-attachment: fixed;
+            transition: all 0.3s ease-in-out;
+          }
+        `}</style>
         
-        <motion.div className="relative z-10 h-screen flex flex-col justify-center items-center gap-10 text-center px-4">
-          <h1 className="text-4xl font-bold text-black bg-white p-2 rounded">Book Your Car</h1>
+        <motion.div 
+          className="relative z-10 h-screen flex flex-col justify-center items-center gap-10 text-center px-4"
+          initial={{ y: 50, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 1, delay: 0.5, ease: "easeOut" }}
+        >
+          <motion.h1 
+            className="text-4xl font-bold text-black bg-white p-2 rounded"
+            initial={{ y: -30, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.8, delay: 1, ease: "easeOut" }}
+            whileHover={{ scale: 1.05 }}
+          >
+            Book Your Car
+          </motion.h1>
 
-          <form
+          <motion.form
             onSubmit={handleSearch}
             className="bg-white p-6 shadow-lg rounded-xl flex flex-col md:flex-row gap-4 max-w-4xl w-full"
+            initial={{ y: 30, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.8, delay: 1.2, ease: "easeOut" }}
+            whileHover={{ boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)" }}
           >
             <div className="flex flex-col w-full">
               <label className="text-sm font-medium text-gray-700 mb-2">Pickup Location</label>
@@ -124,7 +161,7 @@ const Hero = () => {
             >
               Search Cars
             </button>
-          </form>
+          </motion.form>
         </motion.div>
       </motion.div>
     </>

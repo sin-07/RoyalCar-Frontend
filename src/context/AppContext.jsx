@@ -31,7 +31,14 @@ export const AppProvider = ({ children })=>{
             setUser(data.user)
             // Set isOwner based on user role or localStorage admin flag
             const isAdmin = localStorage.getItem('isAdmin')
-            setIsOwner(data.user.role === 'owner' || isAdmin === 'true')
+            const shouldBeOwner = data.user.role === 'owner' || isAdmin === 'true'
+            setIsOwner(shouldBeOwner)
+            
+            // Debug logging
+            console.log('User data fetched:', data.user)
+            console.log('User role:', data.user.role)
+            console.log('Is admin from localStorage:', isAdmin)
+            console.log('Setting isOwner to:', shouldBeOwner)
            } else {
             // Clear invalid token
             localStorage.removeItem('token')
@@ -66,7 +73,10 @@ export const AppProvider = ({ children })=>{
             }
         } catch (error) {
             console.error("Error fetching cars:", error);
-            toast.error(error.message)
+            // Only show toast error if user is logged in (to avoid errors on public pages)
+            if (token) {
+                toast.error('Failed to load cars. Please try again.');
+            }
         }
     }
 
@@ -78,8 +88,17 @@ export const AppProvider = ({ children })=>{
         setUser(null)
         setIsOwner(false)
         axios.defaults.headers.common['Authorization'] = ''
-        navigate('/')
-        toast.success('You have been logged out')
+        
+        // Show success message first
+        toast.success('You have been logged out successfully!', {
+            duration: 3000,
+            position: 'top-center',
+        })
+        
+        // Small delay to ensure toast is visible before navigation
+        setTimeout(() => {
+            navigate('/')
+        }, 500)
     }
 
     // Function to handle login requirement

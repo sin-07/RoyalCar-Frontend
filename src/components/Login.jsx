@@ -2,20 +2,39 @@ import React from "react";
 import { useAppContext } from "../context/AppContext";
 import toast from "react-hot-toast";
 import { useLocation } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 
 const Login = () => {
-  const { setShowLogin, axios, setToken, navigate, setIsOwner, intendedRoute, setIntendedRoute } = useAppContext();
+  const {
+    setShowLogin,
+    axios,
+    setToken,
+    navigate,
+    setIsOwner,
+    intendedRoute,
+    setIntendedRoute,
+  } = useAppContext();
   const location = useLocation();
 
   const [state, setState] = React.useState("login");
   const [name, setName] = React.useState("");
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
+  const [isExiting, setIsExiting] = React.useState(false);
+
+  const handleClose = () => {
+    setIsExiting(true);
+    // Wait for exit animation to complete before actually closing
+    setTimeout(() => {
+      setShowLogin(false);
+      setIsExiting(false);
+    }, 600); // Match the animation duration
+  };
 
   const onSubmitHandler = async (event) => {
     try {
       event.preventDefault();
-      
+
       // Check for admin credentials
       if (email === "aniket.singh9322@gmail.com" && password === "Vicky@123") {
         // Create a special admin login
@@ -26,24 +45,43 @@ const Login = () => {
           });
 
           if (data.success) {
-            setIsOwner(true);
+            // Set token first
             setToken(data.token);
-            localStorage.setItem('token', data.token);
-            localStorage.setItem('isAdmin', 'true');
+            localStorage.setItem("token", data.token);
+            localStorage.setItem("isAdmin", "true");
+
+            // Set axios headers
+            axios.defaults.headers.common["Authorization"] = `${data.token}`;
+
+            // Set admin status
+            setIsOwner(true);
+
+            // Debug logging
+            console.log("Admin login successful");
+            console.log("Token set:", data.token);
+            console.log("isOwner set to true");
+            console.log("localStorage isAdmin set to true");
+
+            // Close login modal
             setShowLogin(false);
             toast.success("Admin login successful!");
-            // Redirect to intended route or owner dashboard
-            const redirectTo = intendedRoute || "/owner";
-            setIntendedRoute(null);
-            navigate(redirectTo);
+
+            // Small delay to ensure state is set, then navigate
+            setTimeout(() => {
+              const redirectTo = intendedRoute || "/owner";
+              setIntendedRoute(null);
+              console.log("Navigating to:", redirectTo);
+              navigate(redirectTo);
+            }, 100);
+
             return;
           } else {
             toast.error("Admin authentication failed");
             return;
           }
         } catch (adminError) {
-          // If admin endpoint doesn't exist, create admin as regular user
-          toast.error("Admin authentication not available. Contact developer.");
+          console.error("Admin login error:", adminError);
+          toast.error("Admin authentication failed. Please try again.");
           return;
         }
       }
@@ -59,8 +97,12 @@ const Login = () => {
         setToken(data.token);
         localStorage.setItem("token", data.token);
         setShowLogin(false);
-        toast.success(state === "login" ? "Login successful!" : "Account created successfully!");
-        
+        toast.success(
+          state === "login"
+            ? "Login successful!"
+            : "Account created successfully!"
+        );
+
         // Redirect to intended route or home
         const redirectTo = intendedRoute || "/";
         setIntendedRoute(null);
@@ -74,83 +116,185 @@ const Login = () => {
   };
 
   return (
-    <div
-      onClick={() => setShowLogin(false)}
+    <motion.div
+      onClick={handleClose}
       className="fixed top-0 bottom-0 left-0 right-0 z-100 flex items-center text-sm text-gray-600 bg-black/50"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: isExiting ? 0 : 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
     >
-      <form
-        onSubmit={onSubmitHandler}
+      <div 
         onClick={(e) => e.stopPropagation()}
-        className="flex flex-col gap-4 m-auto items-start p-8 py-12 w-80 sm:w-[352px] rounded-lg shadow-xl border border-gray-200 bg-white"
+        className="relative w-80 sm:w-[352px] h-[500px] m-auto perspective-1000"
+        style={{ perspective: '1000px' }}
       >
-        <p className="text-2xl font-medium m-auto">
-          <span className="text-primary">User</span>{" "}
-          {state === "login" ? "Login" : "Sign Up"}
-        </p>
-        <p className="text-xs text-gray-500 text-center w-full">
-          Admin access: Use admin email and password
-        </p>
-        {state === "register" && (
-          <div className="w-full">
-            <p>Name</p>
-            <input
-              onChange={(e) => setName(e.target.value)}
-              value={name}
-              placeholder="type here"
-              className="border border-gray-200 rounded w-full p-2 mt-1 outline-primary"
-              type="text"
-              required
-            />
-          </div>
-        )}
-        <div className="w-full ">
-          <p>Email</p>
-          <input
-            onChange={(e) => setEmail(e.target.value)}
-            value={email}
-            placeholder="type here"
-            className="border border-gray-200 rounded w-full p-2 mt-1 outline-primary"
-            type="email"
-            required
-          />
-        </div>
-        <div className="w-full ">
-          <p>Password</p>
-          <input
-            onChange={(e) => setPassword(e.target.value)}
-            value={password}
-            placeholder="type here"
-            className="border border-gray-200 rounded w-full p-2 mt-1 outline-primary"
-            type="password"
-            required
-          />
-        </div>
-        {state === "register" ? (
-          <p>
-            Already have account?{" "}
-            <span
-              onClick={() => setState("login")}
-              className="text-primary cursor-pointer"
+        <AnimatePresence mode="wait">
+          <motion.form
+            key={state} // This ensures re-render on state change
+            onSubmit={onSubmitHandler}
+            className="absolute inset-0 flex flex-col gap-4 items-start p-8 py-12 rounded-lg shadow-xl border border-gray-200 bg-white"
+            initial={{ rotateY: state === "login" ? 180 : -180, opacity: 0, scale: 0.8 }}
+            animate={{ 
+              rotateY: isExiting ? (state === "login" ? -360 : 360) : 0, 
+              opacity: isExiting ? 0 : 1,
+              scale: isExiting ? 0.5 : 1,
+              y: isExiting ? -50 : 0
+            }}
+            exit={{ 
+              rotateY: state === "login" ? -180 : 180, 
+              opacity: 0,
+              scale: 0.8,
+              y: 50
+            }}
+            transition={{ 
+              duration: isExiting ? 0.6 : 0.6, 
+              ease: isExiting ? "easeIn" : "easeInOut",
+              opacity: { duration: isExiting ? 0.4 : 0.3 }
+            }}
+            style={{ 
+              transformStyle: 'preserve-3d',
+              backfaceVisibility: 'hidden'
+            }}
+          >
+            {/* Close Button */}
+            <motion.button
+              type="button"
+              onClick={handleClose}
+              className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-red-100 text-gray-600 hover:text-red-600 transition-all duration-200 z-10"
+              initial={{ opacity: 0, scale: 0 }}
+              animate={{ 
+                opacity: isExiting ? 0 : 1, 
+                scale: isExiting ? 0 : 1,
+                rotate: isExiting ? 180 : 0
+              }}
+              transition={{ delay: isExiting ? 0 : 0.8, duration: 0.3 }}
+              whileHover={{ scale: 1.1, rotate: 90 }}
+              whileTap={{ scale: 0.9 }}
             >
-              click here
-            </span>
-          </p>
-        ) : (
-          <p>
-            Create an account?{" "}
-            <span
-              onClick={() => setState("register")}
-              className="text-primary cursor-pointer"
+              <svg 
+                className="w-4 h-4" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  strokeWidth={2} 
+                  d="M6 18L18 6M6 6l12 12" 
+                />
+              </svg>
+            </motion.button>
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.3, duration: 0.5 }}
+              className="w-full"
             >
-              click here
-            </span>
-          </p>
-        )}
-        <button className="bg-primary hover:bg-blue-800 transition-all text-white w-full py-2 rounded-md cursor-pointer">
-          {state === "register" ? "Create Account" : "Login"}
-        </button>
-      </form>
-    </div>
+              <p className="text-2xl font-medium m-auto text-center">
+                <span className="text-primary">User</span>{" "}
+                {state === "login" ? "Login" : "Sign Up"}
+              </p>
+              <p className="text-xs text-gray-500 text-center w-full mt-2">
+                Admin access: Use admin email and password
+              </p>
+            </motion.div>
+
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.4, duration: 0.5 }}
+              className="w-full flex flex-col gap-4"
+            >
+              {state === "register" && (
+                <motion.div 
+                  className="w-full"
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <p>Name</p>
+                  <input
+                    onChange={(e) => setName(e.target.value)}
+                    value={name}
+                    placeholder="Enter your name"
+                    className="border border-gray-200 rounded w-full p-2 mt-1 outline-primary focus:border-primary transition-colors"
+                    type="text"
+                    required
+                  />
+                </motion.div>
+              )}
+              
+              <div className="w-full">
+                <p>Email</p>
+                <input
+                  onChange={(e) => setEmail(e.target.value)}
+                  value={email}
+                  placeholder="Enter your email"
+                  className="border border-gray-200 rounded w-full p-2 mt-1 outline-primary focus:border-primary transition-colors"
+                  type="email"
+                  required
+                />
+              </div>
+              
+              <div className="w-full">
+                <p>Password</p>
+                <input
+                  onChange={(e) => setPassword(e.target.value)}
+                  value={password}
+                  placeholder="Enter your password"
+                  className="border border-gray-200 rounded w-full p-2 mt-1 outline-primary focus:border-primary transition-colors"
+                  type="password"
+                  required
+                />
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.5, duration: 0.5 }}
+              className="w-full"
+            >
+              {state === "register" ? (
+                <p className="text-center">
+                  Already have account?{" "}
+                  <span
+                    onClick={() => setState("login")}
+                    className="text-primary cursor-pointer hover:underline transition-all"
+                  >
+                    click here
+                  </span>
+                </p>
+              ) : (
+                <p className="text-center">
+                  Create an account?{" "}
+                  <span
+                    onClick={() => setState("register")}
+                    className="text-primary cursor-pointer hover:underline transition-all"
+                  >
+                    click here
+                  </span>
+                </p>
+              )}
+            </motion.div>
+
+            <motion.button 
+              className="bg-gradient-to-r from-green-400 to-green-500 hover:from-green-500 hover:to-green-600 transition-all text-white w-full py-2 rounded-md cursor-pointer transform hover:scale-105 focus:scale-95"
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.6, duration: 0.5 }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              {state === "register" ? "Create Account" : "Login"}
+            </motion.button>
+          </motion.form>
+        </AnimatePresence>
+      </div>
+    </motion.div>
   );
 };
 

@@ -43,6 +43,7 @@ import car_image4 from "./car_image4.png";
 import royalcarslogo from "./Royal_Cars.png";
 import ci1 from "./ci1.jpg";
 import ci2 from "./ci2.jpg";
+import ci3 from "./ci3.jpg";
 
 export const cityList = ["New York", "Los Angeles", "Houston", "Chicago"];
 
@@ -92,6 +93,7 @@ export const assets = {
   royalcarslogo,
   ci1,
   ci2,
+  ci3,
 };
 
 export const menuLinks = [

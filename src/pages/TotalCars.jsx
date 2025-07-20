@@ -21,11 +21,19 @@ const TotalCars = () => {
   useEffect(() => {
     const loadCars = async () => {
       if (globalCars.length === 0) {
-        await fetchCars();
+        try {
+          await fetchCars();
+        } catch (error) {
+          // Handle the case where fetchCars fails (e.g., user not logged in or server down)
+          console.log("Could not fetch cars:", error.message);
+          toast.error(
+            "Unable to load cars. Please check your connection or try again later."
+          );
+        }
       }
       setLoading(false);
     };
-    
+
     loadCars();
   }, [globalCars, fetchCars]);
 
@@ -33,16 +41,35 @@ const TotalCars = () => {
   useEffect(() => {
     let filtered = globalCars;
 
-    // Filter by search input
-    if (input) {
-      filtered = filtered.filter(
-        (car) =>
-          `${car.brand} ${car.model}`
-            .toLowerCase()
-            .includes(input.toLowerCase()) ||
-          car.location.toLowerCase().includes(input.toLowerCase()) ||
-          car.fuel_type.toLowerCase().includes(input.toLowerCase())
-      );
+    // Filter by search input - improved search logic
+    if (input.trim()) {
+      const searchTerm = input.toLowerCase().trim();
+      filtered = filtered.filter((car) => {
+        // Search in multiple fields
+        const brandMatch = car.brand?.toLowerCase().includes(searchTerm);
+        const modelMatch = car.model?.toLowerCase().includes(searchTerm);
+        const brandModelMatch = `${car.brand} ${car.model}`
+          .toLowerCase()
+          .includes(searchTerm);
+        const categoryMatch = car.category?.toLowerCase().includes(searchTerm);
+        const fuelTypeMatch = car.fuel_type?.toLowerCase().includes(searchTerm);
+        const transmissionMatch = car.transmission
+          ?.toLowerCase()
+          .includes(searchTerm);
+        const yearMatch = car.year?.toString().includes(searchTerm);
+        const priceMatch = car.pricePerDay?.toString().includes(searchTerm);
+
+        return (
+          brandMatch ||
+          modelMatch ||
+          brandModelMatch ||
+          categoryMatch ||
+          fuelTypeMatch ||
+          transmissionMatch ||
+          yearMatch ||
+          priceMatch
+        );
+      });
     }
 
     // Filter by category
@@ -73,7 +100,7 @@ const TotalCars = () => {
       {/* Header Section */}
       <div className="bg-white py-16">
         <Title
-          title="Our Complete Car Collection"
+          title="Elegance on Wheels: Our Prestige Car Collection"
           subTitle={`Explore all ${globalCars.length} available vehicles in our premium fleet`}
         />
       </div>
@@ -130,7 +157,7 @@ const TotalCars = () => {
               <input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Search by brand, model, location, or fuel type..."
+                placeholder="Search by brand, model, category, fuel type, transmission, year, or price..."
                 className="w-full pl-12 pr-4 py-4 border-2 border-gray-200 rounded-xl bg-gray-50 text-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none focus:bg-white transition-all duration-200 text-lg placeholder-gray-400"
               />
               {input && (
@@ -211,21 +238,28 @@ const TotalCars = () => {
                 </span>{" "}
                 of <span className="font-semibold">{globalCars.length}</span>{" "}
                 cars
+                {input.trim() && (
+                  <span className="ml-2 px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs">
+                    Search: "{input}"
+                  </span>
+                )}
                 {selectedCategory !== "All" && (
                   <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs">
                     {selectedCategory}
                   </span>
                 )}
               </span>
-              <button
-                onClick={() => {
-                  setInput("");
-                  setSelectedCategory("All");
-                }}
-                className="text-blue-600 hover:text-blue-700 font-medium"
-              >
-                Clear Filters
-              </button>
+              {(input.trim() || selectedCategory !== "All") && (
+                <button
+                  onClick={() => {
+                    setInput("");
+                    setSelectedCategory("All");
+                  }}
+                  className="text-blue-600 hover:text-blue-700 font-medium"
+                >
+                  Clear Filters
+                </button>
+              )}
             </div>
           </div>
         </div>
