@@ -38,11 +38,22 @@ export const AppProvider = ({ children })=>{
         const testConnection = async () => {
             try {
                 console.log('Testing backend connection...');
+                
+                // Test with hardcoded URL first
+                const hardcodedTest = await fetch('https://royalcar-backend-2lg9.onrender.com/');
+                const hardcodedResponse = await hardcodedTest.text();
+                console.log('Hardcoded URL test successful:', hardcodedResponse);
+                
+                // Test with axios configuration
                 const response = await axios.get('/');
-                console.log('Backend connection successful:', response.data);
+                console.log('Axios configuration test successful:', response.data);
             } catch (error) {
                 console.error('Backend connection failed:', error.message);
                 console.error('Error details:', error.response?.data || error);
+                
+                // If axios fails, try to reconfigure it with hardcoded URL
+                console.log('Reconfiguring axios with hardcoded URL...');
+                axios.defaults.baseURL = 'https://royalcar-backend-2lg9.onrender.com';
             }
         };
         testConnection();
