@@ -5,6 +5,12 @@ import { useNavigate } from "react-router-dom";
 
 axios.defaults.baseURL = import.meta.env.VITE_BASE_URL
 
+// Debug logging
+console.log('Environment Variables:');
+console.log('VITE_BASE_URL:', import.meta.env.VITE_BASE_URL);
+console.log('VITE_CURRENCY:', import.meta.env.VITE_CURRENCY);
+console.log('axios.defaults.baseURL:', axios.defaults.baseURL);
+
 export const AppContext = createContext();
 
 export const AppProvider = ({ children })=>{
