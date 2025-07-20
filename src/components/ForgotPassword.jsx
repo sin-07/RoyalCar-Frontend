@@ -96,11 +96,9 @@ const ForgotPassword = ({ onClose, onBackToLogin }) => {
 
     setIsLoading(true);
     try {
-      // Just verify OTP, don't reset password yet
-      const { data } = await axios.post('/api/user/reset-password', { 
+      const { data } = await axios.post('/api/user/verify-password-reset-otp', { 
         email, 
-        otp: otpString, 
-        newPassword: "temp" // Temporary password for verification
+        otp: otpString
       });
       
       if (data.success) {
