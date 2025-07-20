@@ -270,9 +270,20 @@ const ForgotPassword = ({ onClose, onBackToLogin }) => {
                 <button
                   onClick={sendResetOtp}
                   disabled={isLoading}
-                  className="bg-gradient-to-r from-green-400 to-green-500 hover:from-green-500 hover:to-green-600 transition-all text-white w-full py-3 rounded-md cursor-pointer transform hover:scale-105 focus:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                  className="bg-gradient-to-r from-green-400 to-green-500 hover:from-green-500 hover:to-green-600 transition-all text-white w-full py-3 rounded-md cursor-pointer transform hover:scale-105 focus:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2"
                 >
-                  {isLoading ? "Sending..." : "Send Reset Code"}
+                  {isLoading ? (
+                    <>
+                      <motion.div
+                        className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                      />
+                      <span>Sending...</span>
+                    </>
+                  ) : (
+                    "Send Reset Code"
+                  )}
                 </button>
               </motion.div>
             )}
@@ -313,9 +324,20 @@ const ForgotPassword = ({ onClose, onBackToLogin }) => {
                 <button
                   onClick={verifyResetOtp}
                   disabled={isLoading}
-                  className="bg-gradient-to-r from-green-400 to-green-500 hover:from-green-500 hover:to-green-600 transition-all text-white w-full py-3 rounded-md cursor-pointer transform hover:scale-105 focus:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                  className="bg-gradient-to-r from-green-400 to-green-500 hover:from-green-500 hover:to-green-600 transition-all text-white w-full py-3 rounded-md cursor-pointer transform hover:scale-105 focus:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2"
                 >
-                  {isLoading ? "Verifying..." : "Verify Code"}
+                  {isLoading ? (
+                    <>
+                      <motion.div
+                        className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                      />
+                      <span>Verifying...</span>
+                    </>
+                  ) : (
+                    "Verify Code"
+                  )}
                 </button>
 
                 <div className="text-center">
@@ -340,14 +362,6 @@ const ForgotPassword = ({ onClose, onBackToLogin }) => {
                 exit={{ opacity: 0, x: -50 }}
                 transition={{ duration: 0.3 }}
               >
-                {/* Debug info - remove in production */}
-                {(verificationToken || verificationTokenRef.current) && (
-                  <div className="bg-gray-100 p-2 rounded text-xs text-gray-600">
-                    State Token: {verificationToken ? verificationToken.substring(0, 8) + "..." : "undefined"}<br/>
-                    Ref Token: {verificationTokenRef.current ? verificationTokenRef.current.substring(0, 8) + "..." : "undefined"}
-                  </div>
-                )}
-                
                 <div>
                   <p className="mb-2 font-medium">New Password</p>
                   <input
@@ -381,9 +395,20 @@ const ForgotPassword = ({ onClose, onBackToLogin }) => {
                 <button
                   onClick={resetPassword}
                   disabled={isLoading}
-                  className="bg-gradient-to-r from-green-400 to-green-500 hover:from-green-500 hover:to-green-600 transition-all text-white w-full py-3 rounded-md cursor-pointer transform hover:scale-105 focus:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                  className="bg-gradient-to-r from-green-400 to-green-500 hover:from-green-500 hover:to-green-600 transition-all text-white w-full py-3 rounded-md cursor-pointer transform hover:scale-105 focus:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2"
                 >
-                  {isLoading ? "Resetting..." : "Reset Password"}
+                  {isLoading ? (
+                    <>
+                      <motion.div
+                        className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                      />
+                      <span>Resetting...</span>
+                    </>
+                  ) : (
+                    "Reset Password"
+                  )}
                 </button>
               </motion.div>
             )}

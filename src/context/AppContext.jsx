@@ -8,13 +8,6 @@ const baseURL =
   import.meta.env.VITE_BASE_URL || "https://royalcar-backend-2lg9.onrender.com";
 axios.defaults.baseURL = baseURL;
 
-// Debug logging
-console.log("Environment Variables:");
-console.log("VITE_BASE_URL:", import.meta.env.VITE_BASE_URL);
-console.log("VITE_CURRENCY:", import.meta.env.VITE_CURRENCY);
-console.log("Final baseURL:", baseURL);
-console.log("axios.defaults.baseURL:", axios.defaults.baseURL);
-
 export const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
@@ -37,24 +30,10 @@ export const AppProvider = ({ children }) => {
   useEffect(() => {
     const testConnection = async () => {
       try {
-        console.log("Testing backend connection...");
-
-        // Test with hardcoded URL first
-        const hardcodedTest = await fetch(
-          "https://royalcar-backend-2lg9.onrender.com/"
-        );
-        const hardcodedResponse = await hardcodedTest.text();
-        console.log("Hardcoded URL test successful:", hardcodedResponse);
-
         // Test with axios configuration
-        const response = await axios.get("/");
-        console.log("Axios configuration test successful:", response.data);
+        await axios.get("/");
       } catch (error) {
-        console.error("Backend connection failed:", error.message);
-        console.error("Error details:", error.response?.data || error);
-
         // If axios fails, try to reconfigure it with hardcoded URL
-        console.log("Reconfiguring axios with hardcoded URL...");
         axios.defaults.baseURL = "https://royalcar-backend-2lg9.onrender.com";
       }
     };
@@ -63,9 +42,6 @@ export const AppProvider = ({ children }) => {
 
   const fetchUser = async () => {
     try {
-      console.log("Fetching user data with token:", token);
-      console.log("Authorization header:", axios.defaults.headers.common["Authorization"]);
-      
       const { data } = await axios.get("/api/user/data");
       if (data.success) {
         setUser(data.user);
@@ -76,20 +52,12 @@ export const AppProvider = ({ children }) => {
         const isAdmin = localStorage.getItem("isAdmin");
         const shouldBeOwner = data.user.role === "owner" || isAdmin === "true";
         setIsOwner(shouldBeOwner);
-
-        // Debug logging
-        console.log("User data fetched successfully:", data.user);
-        console.log("User role:", data.user.role);
-        console.log("Is admin from localStorage:", isAdmin);
-        console.log("Setting isOwner to:", shouldBeOwner);
-        console.log("User state should now be available in components");
-      } else {
-        console.error("fetchUser failed with message:", data.message);
         
+        return true; // Indicate success
+      } else {
         // If we have admin flag in localStorage, create a fallback admin user
         const isAdmin = localStorage.getItem("isAdmin");
         if (isAdmin === "true" && token) {
-          console.log("Creating fallback admin user due to fetchUser failure");
           const fallbackAdmin = {
             _id: "admin-fallback",
             name: "Admin",
@@ -99,25 +67,23 @@ export const AppProvider = ({ children }) => {
           setUser(fallbackAdmin);
           setIsOwner(true);
           localStorage.setItem("userData", JSON.stringify(fallbackAdmin));
-          console.log("Fallback admin user created successfully");
-          return; // Don't clear token if we have admin fallback
+          return true; // Don't clear token if we have admin fallback
         }
         
         // Clear invalid token
         localStorage.removeItem("token");
         localStorage.removeItem("isAdmin");
+        localStorage.removeItem("userData");
         setToken(null);
         setUser(null);
         setIsOwner(false);
         axios.defaults.headers.common["Authorization"] = "";
+        return false;
       }
     } catch (error) {
-      console.error("Error fetching user:", error);
-      
       // If we have admin flag in localStorage, create a fallback admin user
       const isAdmin = localStorage.getItem("isAdmin");
       if (isAdmin === "true" && token) {
-        console.log("Creating fallback admin user due to fetchUser error");
         const fallbackAdmin = {
           _id: "admin-fallback",
           name: "Admin", 
@@ -127,15 +93,17 @@ export const AppProvider = ({ children }) => {
         setUser(fallbackAdmin);
         setIsOwner(true);
         localStorage.setItem("userData", JSON.stringify(fallbackAdmin));
-        console.log("Fallback admin user created successfully");
+        return true;
       } else {
         // Clear invalid token on error
         localStorage.removeItem("token");
         localStorage.removeItem("isAdmin");
+        localStorage.removeItem("userData");
         setToken(null);
         setUser(null);
         setIsOwner(false);
         axios.defaults.headers.common["Authorization"] = "";
+        return false;
       }
     } finally {
       setIsLoading(false); // Set loading to false after fetch attempt
@@ -152,7 +120,6 @@ export const AppProvider = ({ children }) => {
         toast.error(data.message);
       }
     } catch (error) {
-      console.error("Error fetching cars:", error);
       // Only show toast error if user is logged in (to avoid errors on public pages)
       if (token) {
         toast.error("Failed to load cars. Please try again.");
@@ -170,8 +137,6 @@ export const AppProvider = ({ children }) => {
     setIsOwner(false);
     axios.defaults.headers.common["Authorization"] = "";
 
-    console.log("User logged out, all data cleared");
-
     // Show success message first
     toast.success("You have been logged out successfully!", {
       duration: 3000,
@@ -182,6 +147,11 @@ export const AppProvider = ({ children }) => {
     setTimeout(() => {
       navigate("/");
     }, 500);
+  };
+
+  // Function to check if user is logged in
+  const isLoggedIn = () => {
+    return !!(token && user);
   };
 
   // Function to handle login requirement
@@ -198,37 +168,31 @@ export const AppProvider = ({ children }) => {
 
   // useEffect to retrieve the token from localStorage
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const storedToken = localStorage.getItem("token");
     const isAdmin = localStorage.getItem("isAdmin");
     const userData = localStorage.getItem("userData");
 
-    if (token) {
-      setToken(token);
-      // Try both Bearer and direct token format for compatibility
-      axios.defaults.headers.common["Authorization"] = token;
-      console.log("Token loaded from localStorage:", token);
-      console.log("Authorization header set:", token);
+    if (storedToken) {
+      setToken(storedToken);
+      // Set axios headers with the stored token
+      axios.defaults.headers.common["Authorization"] = storedToken;
       
       // Restore user data if available
       if (userData) {
         try {
           const parsedUser = JSON.parse(userData);
           setUser(parsedUser);
-          console.log("User data restored from localStorage:", parsedUser);
         } catch (e) {
-          console.error("Failed to parse user data from localStorage:", e);
           localStorage.removeItem("userData");
         }
       }
       
       if (isAdmin === "true") {
         setIsOwner(true);
-        console.log("Admin status restored from localStorage");
       }
     } else {
       // No token found, set loading to false immediately
       setIsLoading(false);
-      console.log("No token found in localStorage");
     }
 
     fetchCars();
@@ -266,6 +230,7 @@ export const AppProvider = ({ children }) => {
     intendedRoute,
     setIntendedRoute,
     isLoading,
+    isLoggedIn,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

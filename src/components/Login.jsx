@@ -27,6 +27,7 @@ const Login = () => {
   const [drivingLicense, setDrivingLicense] = React.useState("");
   const [isExiting, setIsExiting] = React.useState(false);
   const [showForgotPassword, setShowForgotPassword] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(false);
 
   // Handle successful registration callback from OTP verification
   React.useEffect(() => {
@@ -96,6 +97,7 @@ const Login = () => {
         return;
       }
 
+      setIsLoading(true);
       const { data } = await axios.post('/api/user/send-otp', { email });
       
       if (data.success) {
@@ -122,6 +124,8 @@ const Login = () => {
       }
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to send OTP");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -150,27 +154,32 @@ const Login = () => {
   const onSubmitHandler = async (event) => {
     try {
       event.preventDefault();
+      setIsLoading(true);
 
       // Additional validation for signup
       if (state === "register") {
         if (!validateMobile(mobile)) {
           toast.error("Please enter a valid 10-digit mobile number");
+          setIsLoading(false);
           return;
         }
         
         if (!validatePasswords()) {
           toast.error("Passwords do not match or password is too short (minimum 6 characters)");
+          setIsLoading(false);
           return;
         }
         
         if (!drivingLicense.trim()) {
           toast.error("Driving license number is required");
+          setIsLoading(false);
           return;
         }
 
         // Check if all fields are filled
         if (!name || !email || !password || !confirmPassword || !mobile || !drivingLicense) {
           toast.error("All fields are required");
+          setIsLoading(false);
           return;
         }
 
@@ -219,6 +228,7 @@ const Login = () => {
             return;
           } else {
             toast.error(data.message || "Admin authentication failed");
+            setIsLoading(false);
             return;
           }
         } catch (adminError) {
@@ -228,6 +238,7 @@ const Login = () => {
             "Admin authentication failed. Please try again.";
 
           toast.error(errorMessage);
+          setIsLoading(false);
           return;
         }
       }
@@ -247,53 +258,54 @@ const Login = () => {
         localStorage.setItem("token", data.token);
 
         // Set axios headers for future requests - use direct token format
-        const authHeader = data.token;
-        axios.defaults.headers.common["Authorization"] = authHeader;
+        axios.defaults.headers.common["Authorization"] = data.token;
 
         // Clear any admin status for regular users
         setIsOwner(false);
         localStorage.removeItem("isAdmin");
 
-        // Fetch user data to ensure user state is updated
-        try {
-          await fetchUser();
+        // Small delay to ensure token is set before fetching user
+        setTimeout(async () => {
+          try {
+            const userFetched = await fetchUser();
+            
+            if (userFetched) {
+              // Close login modal only after successful user fetch
+              setShowLogin(false);
+              toast.success(
+                state === "login"
+                  ? "Login successful!"
+                  : "Account created successfully!"
+              );
 
-          // Double-check if user data was actually set
-          setTimeout(() => {
-            const userFromContext = JSON.parse(
-              localStorage.getItem("userData") || "null"
-            );
-          }, 100);
-        } catch (fetchError) {
-          // Don't reload the page, continue with navigation
-        }
+              // Navigate after user data is fetched
+              let redirectTo = "/";
 
-        // Close login modal
-        setShowLogin(false);
-        toast.success(
-          state === "login"
-            ? "Login successful!"
-            : "Account created successfully!"
-        );
+              // Clear intended route
+              setIntendedRoute(null);
 
-        // Navigate after user data is fetched
-        let redirectTo;
-
-        // Regular users always redirect to home page regardless of intendedRoute
-        redirectTo = "/";
-
-        // Clear intended route
-        setIntendedRoute(null);
-
-        // Use setTimeout to ensure state is fully updated before navigation
-        setTimeout(() => {
-          navigate(redirectTo, { replace: true });
+              // Use setTimeout to ensure state is fully updated before navigation
+              setTimeout(() => {
+                navigate(redirectTo, { replace: true });
+              }, 100);
+            } else {
+              // If fetchUser fails, show error and don't proceed
+              toast.error("Failed to load user data. Please try logging in again.");
+              setIsLoading(false);
+            }
+          } catch (fetchError) {
+            // Error is already handled in fetchUser
+            toast.error("Failed to load user data. Please try logging in again.");
+            setIsLoading(false);
+          }
         }, 100);
       } else {
         toast.error(data.message);
       }
     } catch (error) {
       toast.error(error.message);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -543,15 +555,30 @@ const Login = () => {
             </motion.div>
 
             <motion.button
-              className="bg-gradient-to-r from-green-400 to-green-500 hover:from-green-500 hover:to-green-600 transition-all text-white w-full py-2 rounded-md cursor-pointer transform hover:scale-105 focus:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-gradient-to-r from-green-400 to-green-500 hover:from-green-500 hover:to-green-600 transition-all text-white w-full py-2 rounded-md cursor-pointer transform hover:scale-105 focus:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.6, duration: 0.5 }}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              disabled={false}
+              whileHover={{ scale: isLoading ? 1 : 1.02 }}
+              whileTap={{ scale: isLoading ? 1 : 0.98 }}
+              disabled={isLoading}
             >
-              {state === "register" ? "Create Account" : "Login"}
+              {isLoading ? (
+                <>
+                  <motion.div
+                    className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                  />
+                  <span>
+                    {state === "register" ? "Creating Account..." : "Logging in..."}
+                  </span>
+                </>
+              ) : (
+                <span>
+                  {state === "register" ? "Create Account" : "Login"}
+                </span>
+              )}
             </motion.button>
           </motion.form>
         </AnimatePresence>
