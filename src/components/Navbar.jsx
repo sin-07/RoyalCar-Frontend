@@ -19,7 +19,7 @@ const Navbar = () => {
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.5 }}
       className={`fixed top-0 w-full flex items-center justify-between px-6 md:px-10 lg:px-10 xl:px-10 py-4 text-gray-600 border-b border-borderColor transition-all z-50 ${
-        location.pathname === "/" ? "bg-light/95 backdrop-blur-sm" : "bg-white/95 backdrop-blur-sm"
+        location.pathname === "/" ? "bg-white" : "bg-white"
       }`}
     >
       <Link to="/">
