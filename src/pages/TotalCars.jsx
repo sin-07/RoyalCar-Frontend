@@ -9,16 +9,54 @@ import CarWheelLoader from "../components/CarWheelLoader";
 
 const TotalCars = () => {
   const navigate = useNavigate();
-  const { cars: globalCars, fetchCars } = useAppContext();
+  const { cars: globalCars, fetchCars, axios } = useAppContext();
 
   const [input, setInput] = useState("");
   const [filteredCars, setFilteredCars] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [availabilityFilter, setAvailabilityFilter] = useState("All"); // New availability filter
   const [loading, setLoading] = useState(true);
   const [dataLoaded, setDataLoaded] = useState(false);
+  const [enhancedCars, setEnhancedCars] = useState([]); // Cars with real-time availability
 
   // Get unique categories from cars
-  const categories = ["All", ...new Set(globalCars.map((car) => car.category))];
+  const categories = ["All", ...new Set(enhancedCars.map((car) => car.category))];
+
+  // Function to check real-time availability of cars
+  const checkCarsAvailability = async () => {
+    try {
+      // Use current time as pickup/return to check immediate availability
+      const now = new Date();
+      const nextHour = new Date(now.getTime() + 60 * 60 * 1000); // Add 1 hour
+      
+      const { data } = await axios.post("/api/bookings/check-availability", {
+        pickupDateTime: now.toISOString(),
+        returnDateTime: nextHour.toISOString(),
+      });
+
+      if (data.success) {
+        // Map the availability data to our cars
+        const carsWithAvailability = globalCars.map(globalCar => {
+          const availabilityInfo = data.cars.find(ac => ac.car._id === globalCar._id);
+          return {
+            ...globalCar,
+            isAvailable: availabilityInfo ? availabilityInfo.available : globalCar.isAvailable,
+            nextAvailableAt: availabilityInfo?.availableAt || null
+          };
+        });
+        
+        setEnhancedCars(carsWithAvailability);
+        console.log("✅ Real-time availability updated for", carsWithAvailability.length, "cars");
+      } else {
+        // Fallback to global cars if availability check fails
+        setEnhancedCars(globalCars.map(car => ({ ...car, nextAvailableAt: null })));
+      }
+    } catch (error) {
+      console.warn("⚠️ Availability check failed, using base car data:", error.message);
+      // Fallback to global cars
+      setEnhancedCars(globalCars.map(car => ({ ...car, nextAvailableAt: null })));
+    }
+  };
 
   // Load cars on component mount
   useEffect(() => {
@@ -48,15 +86,22 @@ const TotalCars = () => {
     loadCars();
   }, [globalCars, fetchCars]);
 
+  // Check real-time availability when global cars are loaded
+  useEffect(() => {
+    if (globalCars.length > 0 && dataLoaded) {
+      checkCarsAvailability();
+    }
+  }, [globalCars, dataLoaded]);
+
   // Filter cars based on search input and category
   useEffect(() => {
-    // Only filter if data is loaded
-    if (!dataLoaded || globalCars.length === 0) {
+    // Only filter if data is loaded and enhanced cars are available
+    if (!dataLoaded || enhancedCars.length === 0) {
       setFilteredCars([]);
       return;
     }
 
-    let filtered = globalCars;
+    let filtered = enhancedCars;
 
     // Filter by search input - improved search logic
     if (input.trim()) {
@@ -94,8 +139,17 @@ const TotalCars = () => {
       filtered = filtered.filter((car) => car.category === selectedCategory);
     }
 
+    // Filter by availability
+    if (availabilityFilter !== "All") {
+      if (availabilityFilter === "Available") {
+        filtered = filtered.filter((car) => car.isAvailable);
+      } else if (availabilityFilter === "Booked") {
+        filtered = filtered.filter((car) => !car.isAvailable);
+      }
+    }
+
     setFilteredCars(filtered);
-  }, [input, selectedCategory, globalCars, dataLoaded]);
+  }, [input, selectedCategory, availabilityFilter, enhancedCars, dataLoaded]);
 
   const handleCarClick = (carId) => {
     navigate(`/car-details/${carId}`);
@@ -145,7 +199,7 @@ const TotalCars = () => {
       >
         <Title
           title="Elegance on Wheels: Our Prestige Car Collection"
-          subTitle={`Explore all ${globalCars.length} available vehicles in our premium fleet`}
+          subTitle={`Explore all ${enhancedCars.length} available vehicles in our premium fleet with real-time availability`}
         />
       </motion.div>
 
@@ -160,12 +214,23 @@ const TotalCars = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.3, delay: 0.2 }}
-          className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 -mt-8 z-20 relative"
+          className="grid grid-cols-2 md:grid-cols-5 gap-6 mb-8 -mt-8 z-20 relative"
         >
           {[
-            { value: globalCars.length, label: "Available Cars", color: "blue", delay: 0.1 },
-            { value: categories.length - 1, label: "Categories", color: "green", delay: 0.2 },
-            { value: new Set(globalCars.map((car) => car.brand)).size, label: "Brands", color: "purple", delay: 0.3 },
+            { value: enhancedCars.length, label: "Total Cars", color: "blue", delay: 0.1 },
+            { 
+              value: enhancedCars.filter(car => car.isAvailable).length, 
+              label: "Available", 
+              color: "green", 
+              delay: 0.2 
+            },
+            { 
+              value: enhancedCars.filter(car => !car.isAvailable).length, 
+              label: "Booked", 
+              color: "red", 
+              delay: 0.25 
+            },
+            { value: categories.length - 1, label: "Categories", color: "purple", delay: 0.3 },
             { value: filteredCars.length, label: "Showing", color: "orange", delay: 0.4 }
           ].map((stat, index) => (
             <motion.div
@@ -185,6 +250,27 @@ const TotalCars = () => {
                 {stat.value}
               </motion.div>
               <div className="text-gray-600 font-medium">{stat.label}</div>
+              {/* Add availability indicator for available/booked stats */}
+              {(stat.label === "Available" || stat.label === "Booked") && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ 
+                    opacity: 1,
+                    scale: [1, 1.2, 1]
+                  }}
+                  transition={{ 
+                    opacity: { delay: 1 + stat.delay },
+                    scale: { 
+                      duration: 2, 
+                      repeat: Infinity, 
+                      ease: "easeInOut" 
+                    }
+                  }}
+                  className={`mt-2 w-3 h-3 mx-auto rounded-full ${
+                    stat.label === "Available" ? 'bg-green-400' : 'bg-red-400'
+                  }`}
+                />
+              )}
             </motion.div>
           ))}
         </motion.div>
@@ -196,7 +282,7 @@ const TotalCars = () => {
           transition={{ duration: 0.3, delay: 0.3 }}
           className="bg-white rounded-2xl shadow-2xl p-6 border border-gray-100 mb-8"
         >
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid md:grid-cols-3 gap-6">
             {/* Search Bar */}
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -217,7 +303,7 @@ const TotalCars = () => {
               <input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Search by brand, model, category, fuel type, transmission, year, or price..."
+                placeholder="Search by brand, model, category..."
                 className="w-full pl-12 pr-4 py-4 border-2 border-gray-200 rounded-xl bg-gray-50 text-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none focus:bg-white transition-all duration-200 text-lg placeholder-gray-400"
               />
               {input && (
@@ -286,6 +372,49 @@ const TotalCars = () => {
                 </svg>
               </div>
             </div>
+
+            {/* Availability Filter */}
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <svg
+                  className="h-5 w-5 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
+              <select
+                value={availabilityFilter}
+                onChange={(e) => setAvailabilityFilter(e.target.value)}
+                className="w-full pl-12 pr-4 py-4 border-2 border-gray-200 rounded-xl bg-gray-50 text-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none focus:bg-white transition-all duration-200 text-lg appearance-none cursor-pointer"
+              >
+                <option value="All">All Status</option>
+                <option value="Available">Available Only</option>
+                <option value="Booked">Booked Only</option>
+              </select>
+              <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                <svg
+                  className="h-5 w-5 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </div>
+            </div>
           </div>
 
           {/* Filter Results Info */}
@@ -296,7 +425,7 @@ const TotalCars = () => {
                 <span className="font-semibold text-blue-600">
                   {filteredCars.length}
                 </span>{" "}
-                of <span className="font-semibold">{globalCars.length}</span>{" "}
+                of <span className="font-semibold">{enhancedCars.length}</span>{" "}
                 cars
                 {input.trim() && (
                   <span className="ml-2 px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs">
@@ -308,12 +437,22 @@ const TotalCars = () => {
                     {selectedCategory}
                   </span>
                 )}
+                {availabilityFilter !== "All" && (
+                  <span className={`ml-2 px-2 py-1 rounded-full text-xs ${
+                    availabilityFilter === "Available" 
+                      ? 'bg-green-100 text-green-700' 
+                      : 'bg-red-100 text-red-700'
+                  }`}>
+                    {availabilityFilter}
+                  </span>
+                )}
               </span>
-              {(input.trim() || selectedCategory !== "All") && (
+              {(input.trim() || selectedCategory !== "All" || availabilityFilter !== "All") && (
                 <button
                   onClick={() => {
                     setInput("");
                     setSelectedCategory("All");
+                    setAvailabilityFilter("All");
                   }}
                   className="text-blue-600 hover:text-blue-700 font-medium"
                 >
@@ -352,9 +491,58 @@ const TotalCars = () => {
               >
                 {/* Main Card */}
                 <motion.div 
-                  className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-200 transform overflow-hidden border border-gray-100"
+                  className={`bg-white rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-200 transform overflow-hidden border border-gray-100 ${
+                    !car.isAvailable ? 'opacity-75' : ''
+                  }`}
                 >
-                  <CarCard car={car} />
+                  <div className="relative">
+                    <CarCard car={car} />
+                    
+                  {/* Unavailable Overlay */}
+                  {!car.isAvailable && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: index * 0.05 + 0.5 }}
+                      className="absolute inset-0 bg-black bg-opacity-25 flex flex-col items-center justify-center"
+                    >
+                      <motion.div
+                        initial={{ scale: 0, rotate: -45 }}
+                        animate={{ scale: 1, rotate: 0 }}
+                        transition={{ delay: index * 0.05 + 0.7, type: "spring", stiffness: 200 }}
+                        className="bg-red-500 text-white px-3 py-1.5 rounded-lg font-bold text-xs transform -rotate-12 shadow-lg mb-2"
+                      >
+                        CURRENTLY BOOKED
+                      </motion.div>
+                      {car.nextAvailableAt && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.05 + 0.9 }}
+                          className="bg-white/95 backdrop-blur-sm px-3 py-2 rounded-lg text-center shadow-lg"
+                        >
+                          <p className="text-xs text-gray-700 font-semibold mb-1">
+                            Available from:
+                          </p>
+                          <p className="text-xs text-gray-900 font-bold">
+                            {new Date(car.nextAvailableAt).toLocaleDateString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                              year: 'numeric'
+                            })}
+                          </p>
+                          <p className="text-xs text-gray-700">
+                            {new Date(car.nextAvailableAt).toLocaleTimeString('en-US', {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                              hour12: true
+                            })}
+                          </p>
+                        </motion.div>
+                      )}
+                    </motion.div>
+                  )}
+                  </div>
 
                   {/* Car Details Overlay */}
                   <motion.div 
@@ -366,7 +554,38 @@ const TotalCars = () => {
                       <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
                         {car.category}
                       </span>
-                      <span className="text-xs text-gray-400">{car.year}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-gray-400">{car.year}</span>
+                        {/* Availability Status Badge */}
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{ delay: index * 0.05 + 0.3, type: "spring", stiffness: 200 }}
+                          className={`px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${
+                            car.isAvailable 
+                              ? 'bg-green-100 text-green-700 border border-green-200' 
+                              : 'bg-red-100 text-red-700 border border-red-200'
+                          }`}
+                        >
+                          <motion.div
+                            animate={{ 
+                              scale: car.isAvailable ? [1, 1.2, 1] : [1, 0.8, 1],
+                              opacity: car.isAvailable ? [1, 0.7, 1] : [1, 0.5, 1]
+                            }}
+                            transition={{ 
+                              duration: 2, 
+                              repeat: Infinity, 
+                              ease: "easeInOut" 
+                            }}
+                            className={`w-2 h-2 rounded-full ${
+                              car.isAvailable ? 'bg-green-500' : 'bg-red-500'
+                            }`}
+                          />
+                          <span>
+                            {car.isAvailable ? 'Available' : 'Booked'}
+                          </span>
+                        </motion.div>
+                      </div>
                     </div>
 
                     {/* Quick Info */}

@@ -57,6 +57,11 @@ const Navbar = () => {
             (link.path === "/my-bookings" &&
               location.pathname.startsWith("/my-bookings"));
 
+          // Hide "My Bookings" link for admin users
+          if (link.path === "/my-bookings" && isOwner) {
+            return null;
+          }
+
           return (
             <Link
               key={index}

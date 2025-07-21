@@ -9,15 +9,55 @@ const CarDetails = () => {
 
   const { id } = useParams()
 
-  const { cars } = useAppContext()
+  const { cars, axios } = useAppContext()
 
   const navigate = useNavigate()
   const [car, setCar] = useState(null)
+  const [carAvailability, setCarAvailability] = useState({ available: true, availableAt: null })
+  const [loadingAvailability, setLoadingAvailability] = useState(true)
   const currency = import.meta.env.VITE_CURRENCY
 
   useEffect(() => {
     setCar(cars.find(car => car._id === id))
   }, [cars, id])
+
+  // Check car availability when car is loaded
+  useEffect(() => {
+    const checkCarAvailability = async () => {
+      if (!car || !id) return;
+      
+      setLoadingAvailability(true);
+      try {
+        // Use current time as pickup/return to check immediate availability
+        const now = new Date();
+        const nextHour = new Date(now.getTime() + 60 * 60 * 1000); // Add 1 hour
+        
+        const { data } = await axios.post("/api/bookings/check-availability", {
+          pickupDateTime: now.toISOString(),
+          returnDateTime: nextHour.toISOString(),
+        });
+
+        if (data.success) {
+          const carInfo = data.cars.find(c => c.car._id === id);
+          if (carInfo) {
+            setCarAvailability({
+              available: carInfo.available,
+              availableAt: carInfo.availableAt
+            });
+          }
+        }
+      } catch (error) {
+        console.warn("⚠️ Availability check failed:", error.message);
+        // Keep default availability status
+      } finally {
+        setLoadingAvailability(false);
+      }
+    };
+
+    if (car) {
+      checkCarAvailability();
+    }
+  }, [car, id, axios]);
 
   return car ? (
     <div className='px-6 md:px-16 lg:px-24 xl:px-32 mt-16 bg-gradient-to-br from-gray-50 to-blue-50 min-h-screen'>
@@ -120,6 +160,81 @@ const CarDetails = () => {
           className='flex-1 lg:max-w-md'>
           
           <div className='bg-white rounded-2xl p-8 shadow-xl border border-gray-200'>
+            {/* Availability Status */}
+            <div className='text-center mb-6'>
+              {loadingAvailability ? (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className='flex items-center justify-center gap-2 p-4 bg-gray-50 rounded-xl'
+                >
+                  <div className='w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin'></div>
+                  <span className='text-gray-600 text-sm'>Checking availability...</span>
+                </motion.div>
+              ) : (
+                <motion.div
+                  initial={{ scale: 0.9, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ duration: 0.5 }}
+                  className={`p-4 rounded-xl border-2 ${
+                    carAvailability.available 
+                      ? 'bg-green-50 border-green-200' 
+                      : 'bg-red-50 border-red-200'
+                  }`}
+                >
+                  <div className='flex items-center justify-center gap-2 mb-2'>
+                    <motion.div
+                      animate={{ 
+                        scale: carAvailability.available ? [1, 1.2, 1] : [1, 0.8, 1],
+                        opacity: carAvailability.available ? [1, 0.7, 1] : [1, 0.5, 1]
+                      }}
+                      transition={{ 
+                        duration: 2, 
+                        repeat: Infinity, 
+                        ease: "easeInOut" 
+                      }}
+                      className={`w-3 h-3 rounded-full ${
+                        carAvailability.available ? 'bg-green-500' : 'bg-red-500'
+                      }`}
+                    />
+                    <span className={`font-bold text-lg ${
+                      carAvailability.available ? 'text-green-700' : 'text-red-700'
+                    }`}>
+                      {carAvailability.available ? 'Available Now' : 'Currently Booked'}
+                    </span>
+                  </div>
+                  
+                  {!carAvailability.available && carAvailability.availableAt && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.3 }}
+                      className='bg-white/80 p-3 rounded-lg'
+                    >
+                      <p className='text-red-600 font-semibold text-sm mb-1'>
+                        🕒 Available from:
+                      </p>
+                      <p className='text-red-800 font-bold'>
+                        {new Date(carAvailability.availableAt).toLocaleDateString('en-US', {
+                          weekday: 'long',
+                          month: 'long',
+                          day: 'numeric',
+                          year: 'numeric'
+                        })}
+                      </p>
+                      <p className='text-red-700 font-medium'>
+                        {new Date(carAvailability.availableAt).toLocaleTimeString('en-US', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          hour12: true
+                        })}
+                      </p>
+                    </motion.div>
+                  )}
+                </motion.div>
+              )}
+            </div>
+
             {/* Price Section */}
             <div className='text-center mb-8'>
               <div className='bg-gradient-to-r from-green-400 to-green-500 text-white px-6 py-4 rounded-xl mb-4'>
@@ -131,9 +246,16 @@ const CarDetails = () => {
 
             {/* Booking Instructions */}
             <div className='text-center mb-8'>
-              <h3 className='text-2xl font-bold text-gray-900 mb-4'>Ready to Book?</h3>
+              <h3 className='text-2xl font-bold text-gray-900 mb-4'>
+                {carAvailability.available ? 'Ready to Book?' : 'Book for Later'}
+              </h3>
               <p className='text-gray-600 mb-6 leading-relaxed'>
-                Kindly select your pickup location, date and time to check availability and proceed with booking.
+                {carAvailability.available 
+                  ? 'Kindly select your pickup location, date and time to check availability and proceed with booking.'
+                  : carAvailability.availableAt 
+                    ? `This car is currently booked. You can book it from ${new Date(carAvailability.availableAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} at ${new Date(carAvailability.availableAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })} onwards.`
+                    : 'This car is currently booked. Please check back later or select a different time.'
+                }
               </p>
               
               <div className='space-y-3 mb-6'>
@@ -160,15 +282,28 @@ const CarDetails = () => {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.7, duration: 0.4 }}
-                onClick={() => navigate('/')}
-                whileHover={{ scale: 1.02, y: -2 }}
+                onClick={() => {
+                  // Navigate to home page with state to indicate we want to focus on booking form
+                  navigate('/', { 
+                    state: { 
+                      focusBookingForm: true,
+                      fromCarDetails: true 
+                    } 
+                  });
+                }}
+                whileHover={{ scale: carAvailability.available ? 1.02 : 1.01, y: -2 }}
                 whileTap={{ scale: 0.98 }}
-                className='w-full bg-gradient-to-r from-green-400 to-green-500 hover:from-green-500 hover:to-green-600 transition-all duration-300 py-4 font-bold text-white text-lg rounded-xl cursor-pointer shadow-lg hover:shadow-xl mb-6'>
-                Select Date & Location
+                className={`w-full transition-all duration-300 py-4 font-bold text-white text-lg rounded-xl cursor-pointer shadow-lg hover:shadow-xl mb-6 ${
+                  carAvailability.available 
+                    ? 'bg-gradient-to-r from-green-400 to-green-500 hover:from-green-500 hover:to-green-600'
+                    : 'bg-gradient-to-r from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600'
+                }`}>
+                {carAvailability.available ? 'Select Date & Location' : 'Book for Future Date'}
               </motion.button>
 
               <p className='text-center text-sm text-gray-600 font-medium mb-6'>
-                🔒 Secure booking • No hidden fees • Free cancellation
+                🔒 Secure booking • No hidden fees • 
+                {carAvailability.available ? ' Free cancellation' : ' Reserve for later'}
               </p>
             </div>
 

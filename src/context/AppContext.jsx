@@ -141,12 +141,23 @@ export const AppProvider = ({ children }) => {
       if (data.success) {
         setCars(data.cars);
       } else {
-        toast.error(data.message);
+        // Don't show error toast for admin users or when no user data
+        const isAdmin = localStorage.getItem("isAdmin");
+        if (!isAdmin && token && user) {
+          console.warn("Failed to load cars:", data.message);
+        }
       }
     } catch (error) {
-      // Only show toast error if user is logged in (to avoid errors on public pages)
-      if (token) {
-        toast.error("Failed to load cars. Please try again.");
+      // Only show toast error for regular users who are logged in
+      const isAdmin = localStorage.getItem("isAdmin");
+      if (token && !isAdmin && user) {
+        // Only show error for non-admin users and only if it's not a 403/401 error
+        if (error.response?.status !== 403 && error.response?.status !== 401) {
+          toast.error("Failed to load cars. Please try again.");
+        }
+      } else {
+        // Just log the error for admin users or when no user is logged in
+        console.warn("Cars fetch error (suppressed for admin/no-user):", error.message);
       }
     }
   };
@@ -219,15 +230,34 @@ export const AppProvider = ({ children }) => {
       setIsLoading(false);
     }
 
-    fetchCars();
+    // Don't fetch cars on initial load - let it be called when needed
   }, []);
 
   // useEffect to fetch user data when token is available
   useEffect(() => {
     if (token) {
-      fetchUser();
+      fetchUser().then((success) => {
+        // Only fetch cars for regular users (not admin) after successful user fetch
+        const isAdmin = localStorage.getItem("isAdmin");
+        if (success && !isAdmin) {
+          // Use a small delay to ensure isOwner state is updated
+          setTimeout(() => {
+            if (!isOwner) {
+              fetchCars();
+            }
+          }, 100);
+        }
+      });
     }
   }, [token]);
+
+  // Also fetch cars when isOwner changes from true to false (admin to regular user)
+  useEffect(() => {
+    const isAdmin = localStorage.getItem("isAdmin");
+    if (token && user && !isOwner && !isAdmin) {
+      fetchCars();
+    }
+  }, [isOwner, token, user]);
 
   const value = {
     navigate,

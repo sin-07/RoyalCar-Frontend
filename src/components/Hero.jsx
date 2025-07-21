@@ -1,6 +1,6 @@
 // 📁 src/pages/Hero.jsx
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect, useRef } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "motion/react";
 import { assets } from "../assets/assets";
 import ci1Image from "../assets/ci1.jpg";
@@ -12,6 +12,69 @@ const Hero = () => {
   const [pickupLocation, setPickupLocation] = useState("");
 
   const navigate = useNavigate();
+  const location = useLocation();
+  const pickupLocationRef = useRef(null);
+  const heroContainerRef = useRef(null);
+
+  // Check if we need to focus on the booking form
+  useEffect(() => {
+    if (location.state?.focusBookingForm) {
+      // Small delay to ensure component is fully rendered
+      setTimeout(() => {
+        // First scroll to the very top of the page, then to hero section
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        
+        // Then scroll to hero section specifically
+        setTimeout(() => {
+          if (heroContainerRef.current) {
+            heroContainerRef.current.scrollIntoView({
+              behavior: 'smooth',
+              block: 'start',
+              inline: 'nearest'
+            });
+          }
+        }, 300);
+        
+        // Then focus on the pickup location field
+        setTimeout(() => {
+          if (pickupLocationRef.current) {
+            pickupLocationRef.current.focus();
+            
+            // Add visual highlight
+            pickupLocationRef.current.style.border = '3px solid #3b82f6';
+            pickupLocationRef.current.style.boxShadow = '0 0 0 4px rgba(59, 130, 246, 0.2)';
+            pickupLocationRef.current.style.transform = 'scale(1.02)';
+            pickupLocationRef.current.style.transition = 'all 0.3s ease';
+            
+            // For mobile, try to open the dropdown
+            if (pickupLocationRef.current.tagName === 'SELECT') {
+              // Small delay then click to open dropdown on mobile
+              setTimeout(() => {
+                pickupLocationRef.current.click();
+              }, 100);
+            }
+            
+            // Remove highlight after 4 seconds
+            setTimeout(() => {
+              if (pickupLocationRef.current) {
+                pickupLocationRef.current.style.border = '';
+                pickupLocationRef.current.style.boxShadow = '';
+                pickupLocationRef.current.style.transform = '';
+              }
+            }, 4000);
+            
+            console.log('🎯 Successfully focused on pickup location field!');
+          }
+        }, 1000); // Wait for scroll to complete
+      }, 100); // Small initial delay
+      
+      // Clear the state to prevent re-focusing on subsequent renders
+      navigate('/', { 
+        state: null, 
+        replace: true 
+      });
+    }
+  }, [location.state, navigate]);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -46,6 +109,8 @@ const Hero = () => {
   return (
     <>
       <motion.div 
+        id="hero"
+        ref={heroContainerRef}
         className="hero-container relative bg-cover bg-center bg-no-repeat"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -176,7 +241,7 @@ const Hero = () => {
             transition={{ duration: 0.6, delay: 0.3, ease: "easeOut" }}
             whileHover={{ scale: 1.02 }}
           >
-            Book Your Premium Car
+            Reserve Your Luxury Ride Now
           </motion.h1>
 
           <motion.form
@@ -190,6 +255,7 @@ const Hero = () => {
             <div className="flex flex-col w-full">
               <label className="text-xs md:text-sm font-medium text-gray-700 mb-1 md:mb-2">Pickup Location</label>
               <select
+                ref={pickupLocationRef}
                 value={pickupLocation}
                 onChange={(e) => setPickupLocation(e.target.value)}
                 required
