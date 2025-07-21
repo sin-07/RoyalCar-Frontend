@@ -151,10 +151,29 @@ const Login = () => {
     }, 600); // Match the animation duration
   };
 
+  const handleAdminClose = () => {
+    // Immediate close for admin login without animation
+    const scrollY = parseInt(document.body.style.top || '0') * -1;
+    
+    // Re-enable background scroll
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.width = '';
+    document.body.style.overflow = '';
+    
+    // Restore scroll position
+    window.scrollTo(0, scrollY);
+    
+    // Close immediately
+    setShowLogin(false);
+    setIsExiting(false);
+  };
+
   const onSubmitHandler = async (event) => {
     try {
       event.preventDefault();
       setIsLoading(true);
+      console.log("Login form submitted - State:", state, "Email:", email);
 
       // Additional validation for signup
       if (state === "register") {
@@ -192,38 +211,40 @@ const Login = () => {
       if (email === "aniket.singh9322@gmail.com" && password === "Vicky@123") {
         // Use dedicated admin login endpoint
         try {
+          console.log("Attempting admin login...");
           const { data } = await axios.post(`/api/user/admin-login`, {
             email,
             password,
           });
 
+          console.log("Admin login response:", data);
+
           if (data.success) {
-            // Set token first
+            console.log("Admin login successful, setting up admin session...");
+            
+            // Set all admin data synchronously
             setToken(data.token);
+            setIsOwner(true);
+            
+            // Store in localStorage immediately
             localStorage.setItem("token", data.token);
             localStorage.setItem("isAdmin", "true");
 
-            // Set axios headers - try without Bearer prefix for deployed backend
+            // Set axios headers
             axios.defaults.headers.common["Authorization"] = data.token;
 
-            // Set admin status and ensure it's persisted
-            setIsOwner(true);
+            // Show success toast
+            toast.success("Admin login successful! Redirecting...");
+            
+            // Force a page reload to the admin dashboard after short delay
+            setTimeout(() => {
+              console.log("Forcing navigation to admin dashboard...");
+              window.location.href = "/owner";
+            }, 1500);
 
-            // Fetch user data for admin and wait for completion
-            try {
-              await fetchUser();
-            } catch (fetchError) {
-              // Even if fetchUser fails, we can still proceed as admin since we have the token
-            }
-
-            // Close login modal
-            setShowLogin(false);
-            toast.success(
-              "Admin login successful! Redirecting to dashboard..."
-            );
-
-            // Force a hard redirect to bypass React state issues
-            window.location.href = "/owner";
+            // Close the modal
+            setIsLoading(false);
+            handleAdminClose();
 
             return;
           } else {

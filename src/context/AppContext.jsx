@@ -6,6 +6,8 @@ import { useNavigate } from "react-router-dom";
 // Set base URL with fallback
 const baseURL =
   import.meta.env.VITE_BASE_URL || "https://royalcar-backend-2lg9.onrender.com";
+console.log("AppContext - Base URL:", baseURL);
+console.log("AppContext - Environment VITE_BASE_URL:", import.meta.env.VITE_BASE_URL);
 axios.defaults.baseURL = baseURL;
 
 export const AppContext = createContext();

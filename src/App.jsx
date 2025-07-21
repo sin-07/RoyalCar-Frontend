@@ -12,6 +12,7 @@ import Dashboard from './pages/owner/Dashboard'
 import AddCar from './pages/owner/AddCar'
 import ManageCars from './pages/owner/ManageCars'
 import ManageBookings from './pages/owner/ManageBookings'
+import ManageReviews from './pages/owner/ManageReviews'
 import Login from './components/Login'
 import OtpVerification from './pages/OtpVerification'
 import { Toaster } from 'react-hot-toast'
@@ -105,6 +106,7 @@ const AppContent = () => {
           <Route path="add-car" element={<AddCar />} />
           <Route path="manage-cars" element={<ManageCars />} />
           <Route path="manage-bookings" element={<ManageBookings />} />
+          <Route path="manage-reviews" element={<ManageReviews />} />
         </Route>
         </Routes>
       </div>

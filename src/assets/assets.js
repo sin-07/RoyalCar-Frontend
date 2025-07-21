@@ -127,6 +127,12 @@ export const ownerMenuLinks = [
     icon: listIcon,
     coloredIcon: listIconColored,
   },
+  {
+    name: "Manage Reviews",
+    path: "/owner/manage-reviews",
+    icon: star_icon,
+    coloredIcon: star_icon,
+  },
 ];
 
 export const dummyUserData = {
