@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppContext } from "../context/AppContext";
 import toast from "react-hot-toast";
@@ -10,14 +10,16 @@ import CarWheelLoader from "../components/CarWheelLoader";
 const TotalCars = () => {
   const navigate = useNavigate();
   const { cars: globalCars, fetchCars, axios } = useAppContext();
+  const hasLoadedRef = useRef(false);
+  const timeoutRef = useRef(null);
 
   const [input, setInput] = useState("");
   const [filteredCars, setFilteredCars] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("All");
-  const [availabilityFilter, setAvailabilityFilter] = useState("All"); // New availability filter
-  const [loading, setLoading] = useState(true);
-  const [dataLoaded, setDataLoaded] = useState(false);
-  const [enhancedCars, setEnhancedCars] = useState([]); // Cars with real-time availability
+  const [availabilityFilter, setAvailabilityFilter] = useState("All");
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [enhancedCars, setEnhancedCars] = useState([]);
+  const [availabilityCheckComplete, setAvailabilityCheckComplete] = useState(false);
 
   // Get unique categories from cars
   const categories = ["All", ...new Set(enhancedCars.map((car) => car.category))];
@@ -25,9 +27,10 @@ const TotalCars = () => {
   // Function to check real-time availability of cars
   const checkCarsAvailability = async () => {
     try {
+      console.log("🔄 Starting availability check...");
       // Use current time as pickup/return to check immediate availability
       const now = new Date();
-      const nextHour = new Date(now.getTime() + 60 * 60 * 1000); // Add 1 hour
+      const nextHour = new Date(now.getTime() + 60 * 60 * 1000);
       
       const { data } = await axios.post("/api/bookings/check-availability", {
         pickupDateTime: now.toISOString(),
@@ -46,68 +49,90 @@ const TotalCars = () => {
         });
         
         setEnhancedCars(carsWithAvailability);
+        setAvailabilityCheckComplete(true);
         console.log("✅ Real-time availability updated for", carsWithAvailability.length, "cars");
       } else {
         // Fallback to global cars if availability check fails
         setEnhancedCars(globalCars.map(car => ({ ...car, nextAvailableAt: null })));
+        setAvailabilityCheckComplete(true);
+        console.log("⚠️ Availability check failed, using base car data");
       }
     } catch (error) {
       console.warn("⚠️ Availability check failed, using base car data:", error.message);
       // Fallback to global cars
       setEnhancedCars(globalCars.map(car => ({ ...car, nextAvailableAt: null })));
+      setAvailabilityCheckComplete(true);
     }
   };
 
-  // Load cars on component mount
+  // Simple data fetching on mount
   useEffect(() => {
     const loadCars = async () => {
-      setLoading(true);
-      setDataLoaded(false);
+      // If we already have cars and availability is complete, we're done
+      if (globalCars.length > 0 && availabilityCheckComplete) {
+        console.log("✅ Cars and availability already loaded:", globalCars.length, "cars");
+        setIsInitialLoad(false);
+        return;
+      }
+
+      // Only fetch if we haven't loaded yet
+      if (hasLoadedRef.current) return;
+      hasLoadedRef.current = true;
       
+      console.log("� Fetching cars from backend...");
       try {
-        if (globalCars.length === 0) {
-          await fetchCars();
-        }
-        
-        // Add a small delay to ensure smooth loading experience
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        setDataLoaded(true);
-        setLoading(false);
+        await fetchCars();
+        console.log("✅ fetchCars() completed");
       } catch (error) {
-        console.log("Could not fetch cars:", error.message);
-        toast.error(
-          "Unable to load cars. Please check your connection or try again later."
-        );
-        setLoading(false);
+        console.error("❌ Error fetching cars:", error.message);
+        toast.error("Unable to load cars. Please check your connection or try again later.");
+        hasLoadedRef.current = false; // Reset to allow retry
       }
     };
 
     loadCars();
-  }, [globalCars, fetchCars]);
+  }, [fetchCars, availabilityCheckComplete]);
 
-  // Check real-time availability when global cars are loaded
+  // Monitor globalCars and complete initial load when data arrives AND availability check is done
   useEffect(() => {
-    if (globalCars.length > 0 && dataLoaded) {
+    if (globalCars.length > 0 && availabilityCheckComplete && isInitialLoad) {
+      console.log("✅ Cars loaded and availability complete:", globalCars.length, "cars");
+      setIsInitialLoad(false);
+    }
+  }, [globalCars.length, availabilityCheckComplete, isInitialLoad]);
+
+  // Check real-time availability when cars are loaded
+  useEffect(() => {
+    if (globalCars.length > 0 && !availabilityCheckComplete) {
+      console.log("🔄 Checking real-time availability for", globalCars.length, "cars");
       checkCarsAvailability();
     }
-  }, [globalCars, dataLoaded]);
+  }, [globalCars.length, availabilityCheckComplete]);
+
+  // Cleanup timeout on component unmount
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+    };
+  }, []);
 
   // Filter cars based on search input and category
   useEffect(() => {
-    // Only filter if data is loaded and enhanced cars are available
-    if (!dataLoaded || enhancedCars.length === 0) {
+    // Only filter if we have enhanced cars available (not during initial load)
+    if (isInitialLoad || enhancedCars.length === 0) {
       setFilteredCars([]);
       return;
     }
 
     let filtered = enhancedCars;
 
-    // Filter by search input - improved search logic
+    // Filter by search input
     if (input.trim()) {
       const searchTerm = input.toLowerCase().trim();
       filtered = filtered.filter((car) => {
-        // Search in multiple fields
         const brandMatch = car.brand?.toLowerCase().includes(searchTerm);
         const modelMatch = car.model?.toLowerCase().includes(searchTerm);
         const brandModelMatch = `${car.brand} ${car.model}`
@@ -149,15 +174,23 @@ const TotalCars = () => {
     }
 
     setFilteredCars(filtered);
-  }, [input, selectedCategory, availabilityFilter, enhancedCars, dataLoaded]);
+  }, [input, selectedCategory, availabilityFilter, enhancedCars, isInitialLoad]);
 
   const handleCarClick = (carId) => {
     navigate(`/car-details/${carId}`);
     window.scrollTo(0, 0);
   };
 
-  // Show loading wheel until data is fully loaded
-  if (loading || !dataLoaded) {
+  // Show loading wheel until we have cars loaded AND availability checked
+  if (isInitialLoad || globalCars.length === 0 || !availabilityCheckComplete) {
+    const loadingMessage = globalCars.length === 0 
+      ? "Fetching cars from backend..." 
+      : !availabilityCheckComplete 
+        ? "Checking real-time availability..." 
+        : "Processing car data...";
+        
+    console.log("🔄 Showing loader - isInitialLoad:", isInitialLoad, "globalCars.length:", globalCars.length, "availabilityCheckComplete:", availabilityCheckComplete);
+    
     return (
       <div className="fixed inset-0 bg-white z-50 flex flex-col items-center justify-center">
         <CarWheelLoader />
@@ -171,7 +204,7 @@ const TotalCars = () => {
             Loading Premium Cars...
           </h3>
           <p className="text-gray-600 max-w-md mx-auto">
-            Please wait while we fetch the latest collection of vehicles from our premium fleet.
+            {loadingMessage}
           </p>
           <div className="mt-4 flex items-center justify-center space-x-1">
             <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
@@ -250,7 +283,6 @@ const TotalCars = () => {
                 {stat.value}
               </motion.div>
               <div className="text-gray-600 font-medium">{stat.label}</div>
-              {/* Add availability indicator for available/booked stats */}
               {(stat.label === "Available" || stat.label === "Booked") && (
                 <motion.div
                   initial={{ opacity: 0 }}
@@ -470,7 +502,7 @@ const TotalCars = () => {
           transition={{ duration: 0.4 }}
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
         >
-          <AnimatePresence mode="wait">
+          <AnimatePresence>
             {filteredCars.map((car, index) => (
               <motion.div
                 key={car._id}
@@ -479,7 +511,7 @@ const TotalCars = () => {
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ 
                   duration: 0.3,
-                  delay: Math.min(index * 0.05, 0.5), // Limit max delay
+                  delay: Math.min(index * 0.05, 0.5),
                   ease: "easeOut"
                 }}
                 whileHover={{ 
@@ -498,50 +530,50 @@ const TotalCars = () => {
                   <div className="relative">
                     <CarCard car={car} />
                     
-                  {/* Unavailable Overlay */}
-                  {!car.isAvailable && (
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: index * 0.05 + 0.5 }}
-                      className="absolute inset-0 bg-black bg-opacity-25 flex flex-col items-center justify-center"
-                    >
+                    {/* Unavailable Overlay */}
+                    {!car.isAvailable && (
                       <motion.div
-                        initial={{ scale: 0, rotate: -45 }}
-                        animate={{ scale: 1, rotate: 0 }}
-                        transition={{ delay: index * 0.05 + 0.7, type: "spring", stiffness: 200 }}
-                        className="bg-red-500 text-white px-3 py-1.5 rounded-lg font-bold text-xs transform -rotate-12 shadow-lg mb-2"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: index * 0.05 + 0.5 }}
+                        className="absolute inset-0 bg-black bg-opacity-25 flex flex-col items-center justify-center"
                       >
-                        CURRENTLY BOOKED
-                      </motion.div>
-                      {car.nextAvailableAt && (
                         <motion.div
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: index * 0.05 + 0.9 }}
-                          className="bg-white/95 backdrop-blur-sm px-3 py-2 rounded-lg text-center shadow-lg"
+                          initial={{ scale: 0, rotate: -45 }}
+                          animate={{ scale: 1, rotate: 0 }}
+                          transition={{ delay: index * 0.05 + 0.7, type: "spring", stiffness: 200 }}
+                          className="bg-red-500 text-white px-3 py-1.5 rounded-lg font-bold text-xs transform -rotate-12 shadow-lg mb-2"
                         >
-                          <p className="text-xs text-gray-700 font-semibold mb-1">
-                            Available from:
-                          </p>
-                          <p className="text-xs text-gray-900 font-bold">
-                            {new Date(car.nextAvailableAt).toLocaleDateString('en-US', {
-                              month: 'short',
-                              day: 'numeric',
-                              year: 'numeric'
-                            })}
-                          </p>
-                          <p className="text-xs text-gray-700">
-                            {new Date(car.nextAvailableAt).toLocaleTimeString('en-US', {
-                              hour: '2-digit',
-                              minute: '2-digit',
-                              hour12: true
-                            })}
-                          </p>
+                          CURRENTLY BOOKED
                         </motion.div>
-                      )}
-                    </motion.div>
-                  )}
+                        {car.nextAvailableAt && (
+                          <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: index * 0.05 + 0.9 }}
+                            className="bg-white/95 backdrop-blur-sm px-3 py-2 rounded-lg text-center shadow-lg"
+                          >
+                            <p className="text-xs text-gray-700 font-semibold mb-1">
+                              Available from:
+                            </p>
+                            <p className="text-xs text-gray-900 font-bold">
+                              {new Date(car.nextAvailableAt).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric'
+                              })}
+                            </p>
+                            <p className="text-xs text-gray-700">
+                              {new Date(car.nextAvailableAt).toLocaleTimeString('en-US', {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                hour12: true
+                              })}
+                            </p>
+                          </motion.div>
+                        )}
+                      </motion.div>
+                    )}
                   </div>
 
                   {/* Car Details Overlay */}
@@ -640,7 +672,7 @@ const TotalCars = () => {
 
         {/* No Results Message */}
         <AnimatePresence>
-          {filteredCars.length === 0 && !loading && (
+          {filteredCars.length === 0 && !isInitialLoad && enhancedCars.length > 0 && (
             <motion.div 
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -695,6 +727,7 @@ const TotalCars = () => {
                   onClick={() => {
                     setInput("");
                     setSelectedCategory("All");
+                    setAvailabilityFilter("All");
                   }}
                   className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
                 >

@@ -333,7 +333,7 @@ const Cars = () => {
               transition={{ duration: 0.6, delay: 0.4 }}
               className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 px-4 sm:px-0"
             >
-              <AnimatePresence mode="wait">
+              <AnimatePresence>
                 {cars
                   .filter(({ car }) =>
                     `${car.brand} ${car.model}`
