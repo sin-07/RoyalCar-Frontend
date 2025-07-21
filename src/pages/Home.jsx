@@ -9,8 +9,29 @@ import { useAppContext } from '../context/AppContext'
 import { motion } from 'motion/react'
 
 const Home = () => {
-  const { cars, fetchCars } = useAppContext();
+  const { cars, fetchCars, user, token } = useAppContext();
   const [dataLoaded, setDataLoaded] = useState(false);
+
+  // Array of beautiful quotes for personalized greeting
+  const welcomeQuotes = [
+    "Welcome back,",
+    "Great to see you again,",
+    "Ready for your next adventure,",
+    "Your journey awaits,",
+    "The road is calling,",
+    "Adventure begins with you,",
+    "Let's explore together,",
+    "Your premium ride awaits,",
+    "Time to hit the road,",
+    "Luxury meets adventure,"
+  ];
+
+  // Get a consistent quote for the user (based on their name)
+  const getPersonalizedQuote = (userName) => {
+    if (!userName) return welcomeQuotes[0];
+    const index = userName.length % welcomeQuotes.length;
+    return welcomeQuotes[index];
+  };
 
   useEffect(() => {
     const loadInitialData = async () => {
@@ -38,7 +59,8 @@ const Home = () => {
       transition={{ duration: 0.3 }}
       className="w-full"
     >
-      <Hero />
+      <Hero user={user} token={token} getPersonalizedQuote={getPersonalizedQuote} />
+
       <main className="w-full bg-white">
         {/* <FeaturedSection /> */}
         <Banner />

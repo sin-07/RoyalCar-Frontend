@@ -38,14 +38,22 @@ const Testimonial = () => {
   ];
 
   useEffect(() => {
+    // Show static testimonials immediately for better UX
+    setTestimonials(staticTestimonials);
+    setLoading(false);
+    
+    // Then try to fetch backend testimonials in the background
     fetchTestimonials();
   }, []);
 
   const fetchTestimonials = async () => {
     try {
-      const { data } = await axios.get('/api/reviews/testimonials?limit=6');
+      // Shorter timeout for testimonials since it's not critical
+      const { data } = await axios.get('/api/reviews/testimonials?limit=6', {
+        timeout: 5000 // 5 second timeout for testimonials
+      });
       
-      if (data.success) {
+      if (data.success && data.testimonials.length > 0) {
         // Combine backend testimonials with static ones
         const backendTestimonials = data.testimonials.map(testimonial => ({
           ...testimonial,
@@ -57,16 +65,11 @@ const Testimonial = () => {
         // Show backend testimonials first, then fill with static ones if needed
         const allTestimonials = [...backendTestimonials, ...staticTestimonials].slice(0, 6);
         setTestimonials(allTestimonials);
-      } else {
-        // Use static testimonials if backend fails
-        setTestimonials(staticTestimonials);
       }
+      // If no backend testimonials or empty response, keep static testimonials
     } catch (error) {
-      console.error("Failed to fetch testimonials:", error);
-      // Use static testimonials as fallback
-      setTestimonials(staticTestimonials);
-    } finally {
-      setLoading(false);
+      console.warn("Could not fetch testimonials from server, using static testimonials:", error.message);
+      // Keep static testimonials that are already loaded
     }
   };
 
