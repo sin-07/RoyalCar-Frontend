@@ -70,20 +70,47 @@ const Cars = () => {
     }
 
     try {
+      // Show loading toast
+      const loadingToast = toast.loading("Creating your booking...");
+
       const { data } = await axios.post("/api/bookings/create", {
         car: carId,
         pickupDateTime,
         returnDateTime,
       });
 
+      // Dismiss loading toast
+      toast.dismiss(loadingToast);
+
       if (data.success && data.bookingId) {
-        toast.success("Booking Created.");
+        toast.success("Booking created successfully! Redirecting to payment...");
+        // Navigate to payment page
         navigate(`/payment/${data.bookingId}`);
       } else {
-        toast.error(data.message || "Booking failed.");
+        // Handle specific error cases
+        if (data.message?.includes("future")) {
+          toast.error("Please select a pickup time in the future.");
+        } else if (data.message?.includes("1 hour")) {
+          toast.error("Booking must be at least 1 hour long.");
+        } else if (data.message?.includes("already booked")) {
+          toast.error("This car is no longer available for your selected time. Please refresh and try again.");
+          // Refresh the car list
+          fetchCars();
+        } else {
+          toast.error(data.message || "Booking failed. Please try again.");
+        }
       }
     } catch (err) {
-      toast.error("Server error.");
+      console.error("Booking error:", err);
+      
+      // Handle network errors
+      if (err.response?.data?.message) {
+        toast.error(err.response.data.message);
+      } else if (err.code === 'NETWORK_ERROR') {
+        toast.error("Network error. Please check your connection and try again.");
+      } else {
+        toast.error("Server error. Please try again later.");
+      }
     }
   };
 
@@ -124,7 +151,7 @@ const Cars = () => {
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="p-6 max-w-7xl mx-auto"
+          className="p-4 sm:p-6 max-w-7xl mx-auto"
         >
           <motion.div 
             initial={{ y: 50, opacity: 0 }}
@@ -202,7 +229,7 @@ const Cars = () => {
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.3 }}
-          className="p-6 max-w-7xl mx-auto"
+          className="p-4 sm:p-6 max-w-7xl mx-auto"
         >
           {/* Show loading screen while fetching data */}
           {loading && (
@@ -241,7 +268,7 @@ const Cars = () => {
               initial={{ opacity: 0, y: -30, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               transition={{ duration: 0.5, delay: 0.2 }}
-              className="relative mb-8 -mt-8 z-20"
+              className="relative mb-6 sm:mb-8 -mt-6 sm:-mt-8 z-20 mx-4 sm:mx-0"
             >
               <motion.div 
                 whileHover={{ 
@@ -249,12 +276,12 @@ const Cars = () => {
                   boxShadow: "0 25px 50px rgba(0, 0, 0, 0.15)",
                   transition: { duration: 0.3 }
                 }}
-                className="bg-white rounded-2xl shadow-2xl p-6 border border-gray-100 transform transition-all duration-300"
+                className="bg-white rounded-xl sm:rounded-2xl shadow-lg sm:shadow-2xl p-4 sm:p-6 border border-gray-100 transform transition-all duration-300"
               >
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <div className="absolute inset-y-0 left-0 pl-3 sm:pl-4 flex items-center pointer-events-none">
                     <svg
-                      className="h-5 w-5 text-gray-400 transition-colors duration-300"
+                      className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 transition-colors duration-300"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -271,15 +298,15 @@ const Cars = () => {
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     placeholder="Search by brand or model..."
-                    className="w-full pl-12 pr-4 py-4 border-2 border-gray-200 rounded-xl bg-gray-50 text-gray-700 focus:border-blue-500 focus:ring-4 focus:ring-blue-200/50 focus:outline-none focus:bg-white transition-all duration-300 text-lg placeholder-gray-400 hover:border-gray-300 hover:shadow-md hover:bg-white"
+                    className="w-full pl-10 sm:pl-12 pr-10 sm:pr-4 py-3 sm:py-4 border-2 border-gray-200 rounded-lg sm:rounded-xl bg-gray-50 text-gray-700 focus:border-blue-500 focus:ring-2 sm:focus:ring-4 focus:ring-blue-200/50 focus:outline-none focus:bg-white transition-all duration-300 text-base sm:text-lg placeholder-gray-400 hover:border-gray-300 hover:shadow-md hover:bg-white"
                   />
                   {input && (
                     <button
                       onClick={() => setInput("")}
-                      className="absolute inset-y-0 right-0 pr-4 flex items-center group"
+                      className="absolute inset-y-0 right-0 pr-3 sm:pr-4 flex items-center group"
                     >
                       <svg
-                        className="h-5 w-5 text-gray-400 hover:text-gray-600 transition-all duration-200 group-hover:scale-110 group-hover:rotate-90"
+                        className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 hover:text-gray-600 transition-all duration-200 group-hover:scale-110 group-hover:rotate-90"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -304,7 +331,7 @@ const Cars = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.6, delay: 0.4 }}
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"
+              className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 px-4 sm:px-0"
             >
               <AnimatePresence mode="wait">
                 {cars
@@ -333,28 +360,35 @@ const Cars = () => {
                       className="group relative"
                     >
                     {/* Main Card */}
-                    <div className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 overflow-hidden border border-gray-100">
+                    <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 sm:hover:-translate-y-2 overflow-hidden border border-gray-100">
                       {/* Car Card Component */}
                       <div className="relative">
                         <CarCard car={car} />
 
                         {/* Status Badge */}
                         {!available && (
-                          <div className="absolute top-4 right-4 z-10">
-                            <span className="bg-gradient-to-r from-red-500 to-red-600 text-white px-4 py-2 text-sm font-semibold rounded-full shadow-lg">
-                              Booked
+                          <div className="absolute top-2 sm:top-4 right-2 sm:right-4 z-10">
+                            <span className="bg-gradient-to-r from-red-500 to-red-600 text-white px-2 sm:px-3 py-1 text-xs font-semibold rounded-full shadow-lg">
+                              Not Available
+                            </span>
+                          </div>
+                        )}
+                        {available && (
+                          <div className="absolute top-2 sm:top-4 right-2 sm:right-4 z-10">
+                            <span className="bg-gradient-to-r from-green-500 to-green-600 text-white px-2 sm:px-3 py-1 text-xs font-semibold rounded-full shadow-lg">
+                              Available
                             </span>
                           </div>
                         )}
                       </div>
 
                       {/* Additional Info Section */}
-                      <div className="p-6 bg-gradient-to-r from-gray-50 to-white">
-                        {availableAt && (
-                          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                            <p className="text-sm text-red-700 font-medium flex items-center">
+                      <div className="p-4 sm:p-6 bg-gradient-to-r from-gray-50 to-white">
+                        {!available && availableAt && (
+                          <div className="mb-3 sm:mb-4 p-3 sm:p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                            <div className="flex items-start space-x-2 sm:space-x-3">
                               <svg
-                                className="w-4 h-4 mr-2"
+                                className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500 mt-0.5 flex-shrink-0"
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -366,21 +400,51 @@ const Cars = () => {
                                   d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                                 />
                               </svg>
-                              Available after:{" "}
-                              {moment(availableAt).format("MMM DD, YYYY HH:mm")}
-                            </p>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-xs sm:text-sm font-medium text-orange-800 mb-1">
+                                  Currently Booked
+                                </p>
+                                <p className="text-xs sm:text-sm text-orange-700 break-words">
+                                  Next available: {moment(availableAt).format("MMM DD, YYYY [at] HH:mm")}
+                                </p>
+                                <p className="text-xs text-orange-600 mt-1">
+                                  This car will be free {moment(availableAt).fromNow()}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {available && (
+                          <div className="mb-3 sm:mb-4 p-2 sm:p-3 bg-green-50 border border-green-200 rounded-lg">
+                            <div className="flex items-center space-x-2">
+                              <svg
+                                className="w-3 h-3 sm:w-4 sm:h-4 text-green-500 flex-shrink-0"
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                              >
+                                <path
+                                  fillRule="evenodd"
+                                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                  clipRule="evenodd"
+                                />
+                              </svg>
+                              <p className="text-xs sm:text-sm font-medium text-green-800">
+                                Available for your selected dates
+                              </p>
+                            </div>
                           </div>
                         )}
 
                         {/* Action Button */}
                         {available ? (
                           <button
-                            className="w-full bg-green-600 hover:bg-green-700 text-white py-4 rounded-xl font-semibold text-lg transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl focus:ring-2 focus:ring-green-200 focus:outline-none"
+                            className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white py-3 sm:py-4 rounded-lg sm:rounded-xl font-semibold text-base sm:text-lg transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl focus:ring-2 focus:ring-green-200 focus:outline-none"
                             onClick={() => handleBookNow(car._id)}
                           >
                             <span className="flex items-center justify-center">
                               <svg
-                                className="w-5 h-5 mr-2"
+                                className="w-4 h-4 sm:w-5 sm:h-5 mr-2"
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -396,27 +460,34 @@ const Cars = () => {
                             </span>
                           </button>
                         ) : (
-                          <button
-                            className="w-full bg-gray-400 hover:bg-gray-500 text-gray-700 py-4 rounded-xl font-semibold text-lg cursor-not-allowed opacity-75"
-                            disabled
-                          >
-                            <span className="flex items-center justify-center">
-                              <svg
-                                className="w-5 h-5 mr-2"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636M5.636 18.364l12.728-12.728"
-                                />
-                              </svg>
-                              Already Booked
-                            </span>
-                          </button>
+                          <div className="space-y-2">
+                            <button
+                              className="w-full bg-gray-400 text-gray-700 py-3 sm:py-4 rounded-lg sm:rounded-xl font-semibold text-base sm:text-lg cursor-not-allowed opacity-75"
+                              disabled
+                            >
+                              <span className="flex items-center justify-center">
+                                <svg
+                                  className="w-4 h-4 sm:w-5 sm:h-5 mr-2"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636M5.636 18.364l12.728-12.728"
+                                  />
+                                </svg>
+                                Currently Booked
+                              </span>
+                            </button>
+                            {availableAt && (
+                              <p className="text-xs text-center text-gray-600 break-words">
+                                Try booking after {moment(availableAt).format("MMM DD, HH:mm")}
+                              </p>
+                            )}
+                          </div>
                         )}
                       </div>
                     </div>
@@ -426,7 +497,7 @@ const Cars = () => {
                       initial={{ opacity: 0 }}
                       whileHover={{ opacity: 0.2 }}
                       transition={{ duration: 0.3 }}
-                      className="absolute inset-0 bg-gradient-to-r from-blue-400 via-purple-500 to-indigo-600 rounded-2xl opacity-0 transition-opacity duration-300 -z-10 blur-xl"
+                      className="absolute inset-0 bg-gradient-to-r from-blue-400 via-purple-500 to-indigo-600 rounded-xl sm:rounded-2xl opacity-0 transition-opacity duration-300 -z-10 blur-xl"
                     ></motion.div>
                   </motion.div>
                 ))}

@@ -72,6 +72,11 @@ const ReviewSection = () => {
       console.log("Submitting review:", reviewData);
       console.log("API URL:", `${axios.defaults.baseURL}/api/reviews/submit`);
 
+      // Store current auth state before making request
+      const currentToken = localStorage.getItem("token");
+      const currentUser = localStorage.getItem("userData");
+      const currentIsAdmin = localStorage.getItem("isAdmin");
+
       const { data } = await axios.post('/api/reviews/submit', reviewData);
       
       console.log("Review response:", data);
@@ -83,6 +88,17 @@ const ReviewSection = () => {
         setRating(0);
         setReviewText("");
         setCustomerName("");
+        
+        // Ensure auth state is preserved after successful submission
+        if (currentToken && !localStorage.getItem("token")) {
+          localStorage.setItem("token", currentToken);
+        }
+        if (currentUser && !localStorage.getItem("userData")) {
+          localStorage.setItem("userData", currentUser);
+        }
+        if (currentIsAdmin && !localStorage.getItem("isAdmin")) {
+          localStorage.setItem("isAdmin", currentIsAdmin);
+        }
       } else {
         toast.error(data.message || "Failed to submit review. Please try again.");
       }
@@ -90,8 +106,15 @@ const ReviewSection = () => {
     } catch (error) {
       console.error("Review submission error:", error);
       console.error("Error details:", error.response?.data);
-      const errorMessage = error.response?.data?.message || error.message || "Failed to submit review. Please try again.";
-      toast.error(errorMessage);
+      
+      // Don't let review submission errors affect authentication unless it's a 401/403
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        toast.error("Session expired. Please login again.");
+        setShowLogin(true);
+      } else {
+        const errorMessage = error.response?.data?.message || error.message || "Failed to submit review. Please try again.";
+        toast.error(errorMessage);
+      }
     } finally {
       setIsSubmitting(false);
     }

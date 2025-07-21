@@ -8,7 +8,10 @@ const baseURL =
   import.meta.env.VITE_BASE_URL || "https://royalcar-backend-2lg9.onrender.com";
 console.log("AppContext - Base URL:", baseURL);
 console.log("AppContext - Environment VITE_BASE_URL:", import.meta.env.VITE_BASE_URL);
+
+// Set axios defaults
 axios.defaults.baseURL = baseURL;
+axios.defaults.timeout = 10000; // 10 second timeout
 
 export const AppContext = createContext();
 
@@ -26,6 +29,25 @@ export const AppProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true); // Add loading state
 
   const [cars, setCars] = useState([]);
+
+  // Helper function to handle auth errors consistently
+  const handleAuthError = (error) => {
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      console.log("Auth error - clearing session");
+      localStorage.removeItem("token");
+      localStorage.removeItem("isAdmin");
+      localStorage.removeItem("userData");
+      setToken(null);
+      setUser(null);
+      setIsOwner(false);
+      axios.defaults.headers.common["Authorization"] = "";
+      return true; // Indicates auth error was handled
+    }
+    return false; // Not an auth error
+  };
+
+  // Note: Removed axios interceptor due to compatibility issues
+  // Error handling is now done manually in each API call
 
   // Function to check if user is logged in
   // Test API connection on app load
@@ -72,17 +94,12 @@ export const AppProvider = ({ children }) => {
           return true; // Don't clear token if we have admin fallback
         }
         
-        // Clear invalid token
-        localStorage.removeItem("token");
-        localStorage.removeItem("isAdmin");
-        localStorage.removeItem("userData");
-        setToken(null);
-        setUser(null);
-        setIsOwner(false);
-        axios.defaults.headers.common["Authorization"] = "";
-        return false;
+        console.warn("User fetch failed but token exists - keeping user logged in");
+        return false; // Don't clear token, just return false
       }
     } catch (error) {
+      console.error("fetchUser error:", error);
+      
       // If we have admin flag in localStorage, create a fallback admin user
       const isAdmin = localStorage.getItem("isAdmin");
       if (isAdmin === "true" && token) {
@@ -97,14 +114,19 @@ export const AppProvider = ({ children }) => {
         localStorage.setItem("userData", JSON.stringify(fallbackAdmin));
         return true;
       } else {
-        // Clear invalid token on error
-        localStorage.removeItem("token");
-        localStorage.removeItem("isAdmin");
-        localStorage.removeItem("userData");
-        setToken(null);
-        setUser(null);
-        setIsOwner(false);
-        axios.defaults.headers.common["Authorization"] = "";
+        // Only clear token if it's a 401/403 (unauthorized) error
+        if (error.response?.status === 401 || error.response?.status === 403) {
+          console.log("Token invalid - clearing authentication");
+          localStorage.removeItem("token");
+          localStorage.removeItem("isAdmin");
+          localStorage.removeItem("userData");
+          setToken(null);
+          setUser(null);
+          setIsOwner(false);
+          axios.defaults.headers.common["Authorization"] = "";
+        } else {
+          console.warn("Network error in fetchUser - keeping user logged in");
+        }
         return false;
       }
     } finally {
@@ -210,7 +232,7 @@ export const AppProvider = ({ children }) => {
   const value = {
     navigate,
     currency,
-    axios,
+    axios, // Use the default axios instance
     user,
     setUser,
     token,

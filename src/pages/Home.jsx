@@ -104,8 +104,8 @@ const Home = () => {
       <main className="w-full bg-white">
         {/* <FeaturedSection /> */}
         <Banner />
-        <ReviewSection />
         <Testimonial />
+        <ReviewSection />
       </main>
     </motion.div>
   )
