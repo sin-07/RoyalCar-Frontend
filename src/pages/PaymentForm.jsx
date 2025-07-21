@@ -58,8 +58,8 @@ const PaymentForm = () => {
       }
 
       try {
-        // Try the specific booking endpoint first
-        const { data } = await axios.get(`/api/bookings/booking/${bookingId}`);
+        // Use the correct endpoint
+        const { data } = await axios.get(`/api/bookings/${bookingId}`);
         if (data.success && data.booking) {
           setBookingDetails(data.booking);
         } else {
@@ -67,24 +67,12 @@ const PaymentForm = () => {
         }
       } catch (error) {
         console.error("Failed to fetch booking details:", error);
+        toast.error("Could not load booking details. Please check your booking ID.");
         
-        // If specific endpoint fails, try alternative endpoints
-        try {
-          const { data } = await axios.get(`/api/bookings/${bookingId}`);
-          if (data.success && data.booking) {
-            setBookingDetails(data.booking);
-          } else {
-            throw new Error("Booking not found on alternative endpoint");
-          }
-        } catch (alternativeError) {
-          console.error("Alternative endpoint also failed:", alternativeError);
-          
-          // Show a more helpful error message but don't block the payment
-          console.warn("Could not fetch booking details, but proceeding with payment");
-          
-          // Don't show error toast for booking details fetch failure
-          // The payment can still proceed without the summary
-        }
+        // If booking details can't be fetched, redirect back
+        setTimeout(() => {
+          navigate("/my-bookings");
+        }, 2000);
       }
     };
 
@@ -276,20 +264,24 @@ const PaymentForm = () => {
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div className="bg-blue-50 p-3 rounded-lg">
                     <p className="text-blue-600 font-medium">Pickup</p>
-                    <p className="text-gray-800">{new Date(bookingDetails.pickupDateTime).toLocaleDateString()}</p>
-                    <p className="text-gray-600">{new Date(bookingDetails.pickupDateTime).toLocaleTimeString()}</p>
+                    <p className="text-gray-800">
+                      {new Date(bookingDetails.pickupDate).toLocaleDateString()}
+                    </p>
+                    <p className="text-gray-600">{bookingDetails.pickupTime}</p>
                   </div>
                   <div className="bg-orange-50 p-3 rounded-lg">
                     <p className="text-orange-600 font-medium">Return</p>
-                    <p className="text-gray-800">{new Date(bookingDetails.returnDateTime).toLocaleDateString()}</p>
-                    <p className="text-gray-600">{new Date(bookingDetails.returnDateTime).toLocaleTimeString()}</p>
+                    <p className="text-gray-800">
+                      {new Date(bookingDetails.returnDate).toLocaleDateString()}
+                    </p>
+                    <p className="text-gray-600">{bookingDetails.returnTime}</p>
                   </div>
                 </div>
                 
                 <div className="border-t pt-4">
                   <div className="flex justify-between items-center text-lg font-bold">
                     <span className="text-gray-800">Original Amount:</span>
-                    <span className="text-gray-400 line-through">₹{bookingDetails.totalPrice}</span>
+                    <span className="text-gray-400 line-through">₹{bookingDetails.price}</span>
                   </div>
                   <div className="flex justify-between items-center text-lg font-bold mt-2">
                     <span className="text-gray-800">Test Amount:</span>

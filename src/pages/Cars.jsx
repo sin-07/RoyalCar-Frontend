@@ -22,6 +22,7 @@ const Cars = () => {
   const [cars, setCars] = useState([]);
   const [loading, setLoading] = useState(false);
   const [dataFetched, setDataFetched] = useState(false);
+  const [initialLoad, setInitialLoad] = useState(true);
 
   const fetchCars = async () => {
     setLoading(true);
@@ -53,6 +54,7 @@ const Cars = () => {
       setDataFetched(true); // Mark as fetched even on error
     } finally {
       setLoading(false);
+      setInitialLoad(false); // Mark initial load as complete
     }
   };
 
@@ -231,8 +233,8 @@ const Cars = () => {
           transition={{ duration: 0.6, delay: 0.3 }}
           className="p-4 sm:p-6 max-w-7xl mx-auto"
         >
-          {/* Show loading screen while fetching data */}
-          {loading && (
+          {/* Show loading screen while fetching data - only after initial render */}
+          {loading && !initialLoad && (
             <div className="fixed inset-0 bg-white/90 backdrop-blur-sm z-50 flex flex-col items-center justify-center">
               <CarWheelLoader />
               <motion.div 
@@ -259,6 +261,13 @@ const Cars = () => {
                   Connecting to backend services...
                 </p>
               </motion.div>
+            </div>
+          )}
+
+          {/* Show minimal loading indicator for initial load */}
+          {loading && initialLoad && (
+            <div className="flex justify-center items-center py-20">
+              <CarWheelLoader />
             </div>
           )}
 
@@ -363,7 +372,7 @@ const Cars = () => {
                     <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 sm:hover:-translate-y-2 overflow-hidden border border-gray-100">
                       {/* Car Card Component */}
                       <div className="relative">
-                        <CarCard car={car} />
+                        <CarCard car={car} onClick={() => {}} />
 
                         {/* Status Badge */}
                         {!available && (

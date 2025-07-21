@@ -78,6 +78,7 @@ const Hero = ({ user, token, getPersonalizedQuote }) => {
 
   const handleSearch = (e) => {
     e.preventDefault();
+    e.stopPropagation();
 
     if (!pickupDateTime || !returnDateTime || !pickupLocation) {
       alert("Please fill all fields.");
@@ -101,8 +102,10 @@ const Hero = ({ user, token, getPersonalizedQuote }) => {
       return;
     }
 
+    // Navigate immediately without delay
     navigate(
-      `/cars?pickupLocation=${pickupLocation}&pickupDateTime=${pickupDateTime}&returnDateTime=${returnDateTime}`
+      `/cars?pickupLocation=${pickupLocation}&pickupDateTime=${pickupDateTime}&returnDateTime=${returnDateTime}`,
+      { replace: true }
     );
   };
 
@@ -137,142 +140,43 @@ const Hero = ({ user, token, getPersonalizedQuote }) => {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.5 }}
-            className="absolute top-0 left-0 right-0 z-10 pt-16 md:pt-20"
+            className="absolute top-0 left-0 right-0 z-30 pt-20 md:pt-24"
           >
             <div className="max-w-7xl mx-auto px-6 text-center">
               <motion.div
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ duration: 0.8, delay: 0.7, type: "spring", stiffness: 120 }}
-                className="inline-flex items-center space-x-3 mb-2"
+                className="mb-40 md:mb-48 lg:mb-56 xl:mb-64"
               >
-                {/* Decorative Icon */}
-                <motion.div
-                  animate={{ rotate: [0, 10, -10, 0] }}
-                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                  className="bg-white/20 backdrop-blur-sm rounded-full p-2.5 border border-white/20"
-                >
-                  <svg className="w-6 h-6 md:w-8 md:h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 2L13.09 8.26L22 9L13.09 9.74L12 16L10.91 9.74L2 9L10.91 8.26L12 2Z"/>
-                  </svg>
-                </motion.div>
-
                 {/* Personalized Quote */}
                 <motion.h2 
                   initial={{ x: -30, opacity: 0 }}
                   animate={{ x: 0, opacity: 1 }}
                   transition={{ duration: 0.6, delay: 0.9 }}
-                  className="text-2xl md:text-3xl lg:text-4xl font-bold text-white drop-shadow-lg"
+                  className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-white mb-3 md:mb-4"
+                  style={{ 
+                    textShadow: "2px 2px 8px rgba(0,0,0,0.9), 0 0 20px rgba(0,0,0,0.7)"
+                  }}
                 >
                   {getPersonalizedQuote(user.name)}
                 </motion.h2>
-              </motion.div>
 
-              {/* User Name with Elegant Styling */}
-              <motion.div
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ duration: 0.8, delay: 1.1 }}
-                className="relative"
-              >
+                {/* User Name */}
                 <motion.h1 
-                  className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 via-white to-yellow-200 mb-2 drop-shadow-2xl"
-                  animate={{ 
-                    backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"]
-                  }}
-                  transition={{ 
-                    duration: 4, 
-                    repeat: Infinity, 
-                    ease: "easeInOut" 
-                  }}
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ duration: 0.8, delay: 1.1 }}
+                  className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold text-white mb-4 md:mb-6"
                   style={{ 
-                    backgroundSize: "200% 200%",
-                    filter: "drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3))"
+                    textShadow: "2px 2px 8px rgba(0,0,0,0.9), 0 0 20px rgba(0,0,0,0.7)"
                   }}
                 >
                   {user.name}!
                 </motion.h1>
-                
-                {/* Subtitle */}
-                <motion.p 
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.6, delay: 1.3 }}
-                  className="text-base md:text-lg lg:text-xl text-white font-medium mb-3 drop-shadow-md"
-                >
-                  Your premium car collection awaits your selection
-                </motion.p>
-
-                {/* Decorative Elements */}
-                <motion.div 
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ duration: 0.6, delay: 1.5, type: "spring", stiffness: 200 }}
-                  className="flex justify-center space-x-3 mb-3"
-                >
-                  {[...Array(3)].map((_, i) => (
-                    <motion.div
-                      key={i}
-                      animate={{ 
-                        y: [0, -8, 0],
-                        opacity: [0.5, 1, 0.5]
-                      }}
-                      transition={{ 
-                        duration: 2, 
-                        repeat: Infinity, 
-                        delay: i * 0.3,
-                        ease: "easeInOut"
-                      }}
-                      className="w-2 h-2 md:w-3 md:h-3 bg-white/80 rounded-full shadow-lg"
-                    />
-                  ))}
-                </motion.div>
-              </motion.div>
-
-              {/* Quick Action Button */}
-              <motion.div
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 1.7 }}
-              >
-                
+           
               </motion.div>
             </div>
-
-            {/* Floating Elements */}
-            <motion.div
-              animate={{ 
-                x: [0, 60, 0],
-                y: [0, -15, 0]
-              }}
-              transition={{ 
-                duration: 20, 
-                repeat: Infinity, 
-                ease: "linear"
-              }}
-              className="absolute top-1/2 left-6 md:left-10 opacity-30"
-            >
-              <svg className="w-8 h-8 md:w-12 md:h-12 text-white drop-shadow-lg" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M5,11L6.5,6.5H17.5L19,11M17.5,16A1.5,1.5 0 0,1 16,14.5A1.5,1.5 0 0,1 17.5,13A1.5,1.5 0 0,1 19,14.5A1.5,1.5 0 0,1 17.5,16M6.5,16A1.5,1.5 0 0,1 5,14.5A1.5,1.5 0 0,1 6.5,13A1.5,1.5 0 0,1 8,14.5A1.5,1.5 0 0,1 6.5,16M18.92,6C18.72,5.42 18.16,5 17.5,5H6.5C5.84,5 5.28,5.42 5.08,6L3,12V20A1,1 0 0,0 4,21H5A1,1 0 0,0 6,20V19H18V20A1,1 0 0,0 19,21H20A1,1 0 0,0 21,20V12L18.92,6Z" />
-              </svg>
-            </motion.div>
-
-            <motion.div
-              animate={{ 
-                x: [0, -50, 0],
-                y: [0, 20, 0]
-              }}
-              transition={{ 
-                duration: 25, 
-                repeat: Infinity, 
-                ease: "linear"
-              }}
-              className="absolute bottom-10 right-6 md:right-10 opacity-30"
-            >
-              <svg className="w-6 h-6 md:w-10 md:h-10 text-white drop-shadow-lg" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M5,11L6.5,6.5H17.5L19,11M17.5,16A1.5,1.5 0 0,1 16,14.5A1.5,1.5 0 0,1 17.5,13A1.5,1.5 0 0,1 19,14.5A1.5,1.5 0 0,1 17.5,16M6.5,16A1.5,1.5 0 0,1 5,14.5A1.5,1.5 0 0,1 6.5,13A1.5,1.5 0 0,1 8,14.5A1.5,1.5 0 0,1 6.5,16M18.92,6C18.72,5.42 18.16,5 17.5,5H6.5C5.84,5 5.28,5.42 5.08,6L3,12V20A1,1 0 0,0 4,21H5A1,1 0 0,0 6,20V19H18V20A1,1 0 0,0 19,21H20A1,1 0 0,0 21,20V12L18.92,6Z" />
-              </svg>
-            </motion.div>
           </motion.div>
         )}
         
@@ -288,18 +192,32 @@ const Hero = ({ user, token, getPersonalizedQuote }) => {
             height: 100vh;
             min-height: 100vh;
             overflow: hidden;
-            animation: backgroundZoom 20s ease-in-out infinite;
             display: flex;
             flex-direction: column;
+            position: relative;
+          }
+
+          .hero-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: inherit;
+            background-attachment: inherit;
+            background-position: inherit;
+            background-size: cover;
+            background-repeat: no-repeat;
+            animation: backgroundZoom 20s ease-in-out infinite;
+            z-index: -1;
           }
 
           @keyframes backgroundZoom {
             0%, 100% {
-              background-size: cover;
               transform: scale(1);
             }
             50% {
-              background-size: cover;
               transform: scale(1.05);
             }
           }
@@ -313,9 +231,12 @@ const Hero = ({ user, token, getPersonalizedQuote }) => {
               min-height: 100vh;
               height: 100vh;
               width: 100vw;
+              padding-top: 64px; /* Account for mobile navbar (py-4 = ~64px) */
+            }
+            
+            .hero-container::before {
               animation: none; /* Disable animation on mobile */
               transform: none; /* Remove transforms */
-              padding-top: 64px; /* Account for mobile navbar (py-4 = ~64px) */
             }
           }
 
@@ -328,17 +249,18 @@ const Hero = ({ user, token, getPersonalizedQuote }) => {
               min-height: 100vh;
               height: 100vh;
               width: 100vw;
-              animation: backgroundZoomTablet 25s ease-in-out infinite;
               padding-top: 72px; /* Account for tablet navbar */
+            }
+            
+            .hero-container::before {
+              animation: backgroundZoomTablet 25s ease-in-out infinite;
             }
             
             @keyframes backgroundZoomTablet {
               0%, 100% {
-                background-size: cover;
                 transform: scale(1);
               }
               50% {
-                background-size: cover;
                 transform: scale(1.02);
               }
             }
@@ -373,11 +295,11 @@ const Hero = ({ user, token, getPersonalizedQuote }) => {
         `}</style>
         
         <motion.div 
-          className={`hero-content relative z-10 gap-6 md:gap-8 lg:gap-10 text-center px-4 py-4 md:py-0 ${user && token ? 'pt-32 md:pt-40 lg:pt-48' : ''}`}
+          className={`hero-content relative z-5 gap-6 md:gap-8 lg:gap-10 text-center px-4 py-4 md:py-0 ${user && token ? 'pt-48 sm:pt-56 md:pt-64 lg:pt-72 xl:pt-80' : ''}`}
           initial={{ y: 50, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 1, delay: 0.5, ease: "easeOut" }}
-          style={{ zIndex: 3 }} // Above overlay but below navbar
+          style={{ zIndex: 5 }} // Lower than welcome overlay
         >
           <motion.h1 
             className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-white bg-black/60 backdrop-blur-sm px-4 md:px-6 lg:px-8 py-2 md:py-3 lg:py-4 rounded-xl md:rounded-2xl shadow-2xl border border-white/20"
@@ -459,7 +381,8 @@ const Hero = ({ user, token, getPersonalizedQuote }) => {
 
             <button
               type="submit"
-              className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-4 md:px-6 lg:px-8 py-2 md:py-3 lg:py-4 rounded-lg font-semibold transition-all duration-200 transform hover:scale-102 focus:ring-2 focus:ring-blue-200 focus:outline-none shadow-lg hover:shadow-xl mt-4 md:mt-6 lg:mt-0 md:self-end text-sm md:text-base touch-manipulation"
+              className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-4 md:px-6 lg:px-8 py-2 md:py-3 lg:py-4 rounded-lg font-semibold transition-all duration-200 transform hover:scale-102 focus:ring-2 focus:ring-blue-200 focus:outline-none shadow-lg hover:shadow-xl mt-4 md:mt-6 lg:mt-0 md:self-end text-sm md:text-base touch-manipulation active:scale-95"
+              style={{ WebkitTapHighlightColor: 'transparent' }}
             >
               Search Cars
             </button>

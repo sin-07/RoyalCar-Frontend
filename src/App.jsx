@@ -15,6 +15,7 @@ import ManageBookings from "./pages/owner/ManageBookings";
 import ManageReviews from "./pages/owner/ManageReviews";
 import Login from "./components/Login";
 import OtpVerification from "./pages/OtpVerification";
+import EmailTestPage from "./pages/EmailTestPage";
 import { Toaster } from "react-hot-toast";
 import { useAppContext } from "./context/AppContext";
 import PaymentForm from "./pages/PaymentForm";
@@ -81,6 +82,7 @@ const AppContent = () => {
           <Route path="/cars" element={<Cars />} />
           <Route path="/car-details/:id" element={<CarDetails />} />
           <Route path="/verify-otp" element={<OtpVerification />} />
+          <Route path="/email-test" element={<EmailTestPage />} />
 
           {/* Protected routes - require authentication */}
           <Route
