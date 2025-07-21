@@ -341,16 +341,14 @@ const Login = () => {
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className={`relative w-80 sm:w-[352px] m-auto perspective-1000 ${
-          state === "register" ? "h-[750px]" : "h-[500px]"
-        }`}
+        className="relative w-80 sm:w-[352px] m-auto max-h-[95vh] my-4"
         style={{ perspective: "1000px" }}
       >
         <AnimatePresence mode="wait">
           <motion.form
             key={state} // This ensures re-render on state change
             onSubmit={onSubmitHandler}
-            className="absolute inset-0 flex flex-col gap-4 items-start p-8 py-12 rounded-lg shadow-xl border border-gray-200 bg-white"
+            className="relative flex flex-col gap-3 sm:gap-4 items-start p-6 sm:p-8 py-6 sm:py-8 rounded-lg shadow-xl border border-gray-200 bg-white max-h-[95vh] overflow-y-auto"
             initial={{
               rotateY: state === "login" ? 180 : -180,
               opacity: 0,
@@ -382,7 +380,7 @@ const Login = () => {
             <motion.button
               type="button"
               onClick={handleClose}
-              className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-red-100 text-gray-600 hover:text-red-600 transition-all duration-200 z-10"
+              className="absolute top-2 right-2 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-red-100 text-gray-600 hover:text-red-600 transition-all duration-200 z-10"
               initial={{ opacity: 0, scale: 0 }}
               animate={{
                 opacity: isExiting ? 0 : 1,
@@ -426,11 +424,11 @@ const Login = () => {
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.4, duration: 0.5 }}
-              className="w-full flex flex-col gap-4"
+              className="w-full flex flex-col gap-2 sm:gap-3"
             >
               {state === "register" && (
                 <motion.div
-                  className="w-full space-y-4"
+                  className="w-full space-y-2 sm:space-y-3"
                   initial={{ height: 0, opacity: 0 }}
                   animate={{ height: "auto", opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
@@ -442,7 +440,7 @@ const Login = () => {
                       onChange={(e) => setName(e.target.value)}
                       value={name}
                       placeholder="Enter your name"
-                      className="border border-gray-200 rounded w-full p-2 mt-1 outline-primary focus:border-primary transition-colors"
+                      className="border border-gray-200 rounded w-full p-2 sm:p-3 mt-1 outline-primary focus:border-primary transition-colors"
                       type="text"
                       required
                     />
@@ -459,7 +457,7 @@ const Login = () => {
                       }}
                       value={mobile}
                       placeholder="Enter 10-digit mobile number"
-                      className={`border rounded w-full p-2 mt-1 outline-primary transition-colors ${
+                      className={`border rounded w-full p-2 sm:p-3 mt-1 outline-primary transition-colors ${
                         mobile && !validateMobile(mobile) ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-primary'
                       }`}
                       type="tel"
@@ -477,7 +475,7 @@ const Login = () => {
                       onChange={(e) => setDrivingLicense(e.target.value)}
                       value={drivingLicense}
                       placeholder="Enter your driving license number"
-                      className="border border-gray-200 rounded w-full p-2 mt-1 outline-primary focus:border-primary transition-colors"
+                      className="border border-gray-200 rounded w-full p-2 sm:p-3 mt-1 outline-primary focus:border-primary transition-colors"
                       type="text"
                       required
                     />
@@ -491,7 +489,7 @@ const Login = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   value={email}
                   placeholder="Enter your email"
-                  className="border border-gray-200 rounded w-full p-2 mt-1 outline-primary focus:border-primary transition-colors"
+                  className="border border-gray-200 rounded w-full p-2 sm:p-3 mt-1 outline-primary focus:border-primary transition-colors"
                   type="email"
                   required
                 />
@@ -514,7 +512,7 @@ const Login = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   value={password}
                   placeholder="Enter your password"
-                  className="border border-gray-200 rounded w-full p-2 mt-1 outline-primary focus:border-primary transition-colors"
+                  className="border border-gray-200 rounded w-full p-2 sm:p-3 mt-1 outline-primary focus:border-primary transition-colors"
                   type="password"
                   required
                 />
@@ -533,7 +531,7 @@ const Login = () => {
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     value={confirmPassword}
                     placeholder="Confirm your password"
-                    className={`border rounded w-full p-2 mt-1 outline-primary transition-colors ${
+                    className={`border rounded w-full p-2 sm:p-3 mt-1 outline-primary transition-colors ${
                       confirmPassword && password !== confirmPassword ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-primary'
                     }`}
                     type="password"
@@ -576,7 +574,7 @@ const Login = () => {
             </motion.div>
 
             <motion.button
-              className="bg-gradient-to-r from-green-400 to-green-500 hover:from-green-500 hover:to-green-600 transition-all text-white w-full py-2 rounded-md cursor-pointer transform hover:scale-105 focus:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="bg-gradient-to-r from-green-400 to-green-500 hover:from-green-500 hover:to-green-600 transition-all text-white w-full py-2 sm:py-3 rounded-md cursor-pointer transform hover:scale-105 focus:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-1 mb-2"
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.6, duration: 0.5 }}

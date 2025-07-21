@@ -304,7 +304,7 @@ const ForgotPassword = ({ onClose, onBackToLogin }) => {
                     Enter the 6-digit code sent to {email}
                   </p>
                   
-                  <div className="flex gap-2 justify-center mb-4">
+                  <div className="flex gap-1 sm:gap-2 justify-center mb-4">
                     {otp.map((digit, index) => (
                       <input
                         key={index}
@@ -315,7 +315,7 @@ const ForgotPassword = ({ onClose, onBackToLogin }) => {
                         onChange={(e) => handleOtpChange(index, e.target.value)}
                         onKeyDown={(e) => handleKeyDown(index, e)}
                         onPaste={handlePaste}
-                        className="w-12 h-12 text-center text-lg font-bold border-2 border-gray-200 rounded-lg focus:border-green-600 focus:outline-none transition-colors"
+                        className="w-8 h-8 sm:w-12 sm:h-12 text-center text-sm sm:text-lg font-bold border-2 border-gray-200 rounded-lg focus:border-green-600 focus:outline-none transition-colors"
                       />
                     ))}
                   </div>

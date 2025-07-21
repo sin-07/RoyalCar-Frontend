@@ -182,7 +182,7 @@ const OtpVerification = () => {
           <label className="block text-sm font-medium text-gray-700 mb-3 text-center">
             Enter Verification Code
           </label>
-          <div className="flex justify-center gap-3 mb-4">
+          <div className="flex justify-center gap-1 sm:gap-3 mb-4">
             {otp.map((digit, index) => (
               <motion.input
                 key={index}
@@ -194,7 +194,7 @@ const OtpVerification = () => {
                 onChange={(e) => handleOtpChange(index, e.target.value.replace(/\D/, ''))}
                 onKeyDown={(e) => handleKeyDown(index, e)}
                 onPaste={handlePaste}
-                className="w-12 h-12 text-center text-xl font-bold border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-8 h-8 sm:w-12 sm:h-12 text-center text-sm sm:text-xl font-bold border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none transition-colors"
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ delay: index * 0.1, duration: 0.3 }}

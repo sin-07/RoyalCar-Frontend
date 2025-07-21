@@ -24,7 +24,7 @@ import { LoadingProvider, useLoading } from './context/LoadingContext'
 
 const AppContent = () => {
   const { showLogin } = useAppContext()
-  const { isLoading } = useLoading()
+  const { isLoading, setIsLoading } = useLoading()
   const isOwnerPath = useLocation().pathname.startsWith('/owner')
 
   // Show comprehensive loader during initial loading
@@ -37,7 +37,7 @@ const AppContent = () => {
             Royal Cars
           </h1>
           <p className="text-gray-600 mb-4">
-            Initializing your premium car rental experience...
+            Loading your premium car rental experience...
           </p>
           
           {/* Loading steps indicator */}
@@ -47,9 +47,17 @@ const AppContent = () => {
             <div className="w-3 h-3 bg-indigo-500 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
           </div>
           
-          <p className="text-sm text-gray-500">
-            Setting up backend connections and loading data...
+          <p className="text-sm text-gray-500 mb-6">
+            Connecting to server and loading data...
           </p>
+          
+          {/* Skip button for impatient users */}
+          <button
+            onClick={() => setIsLoading(false)}
+            className="text-blue-600 hover:text-blue-800 text-sm font-medium underline transition-colors"
+          >
+            Skip loading and continue →
+          </button>
         </div>
       </div>
     )
