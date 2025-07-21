@@ -16,32 +16,25 @@ export const LoadingProvider = ({ children }) => {
   const [initialDataLoaded, setInitialDataLoaded] = useState(false);
 
   useEffect(() => {
-    // Initial app loading - optimized for production
+    // Optimized initial app loading
     const loadApp = async () => {
       // Reduced minimum loading time for better UX
-      const minLoadingTime = new Promise(resolve => setTimeout(resolve, 800));
+      const minLoadingTime = new Promise(resolve => setTimeout(resolve, 400));
       
-      // Maximum loading time to prevent infinite loading
-      const maxLoadingTime = new Promise(resolve => setTimeout(resolve, 3000));
+      // Quick connectivity check without blocking
+      const quickCheck = fetch(`${import.meta.env.VITE_BASE_URL}/api/user/cars`, {
+        method: 'HEAD', // HEAD request is faster than GET
+        timeout: 1500 // 1.5 second timeout
+      }).catch(() => null);
       
       try {
-        // Try to fetch initial data (like cars) to check backend connectivity
-        const dataPromise = fetch(`${import.meta.env.VITE_BASE_URL}/api/user/cars`)
-          .then(res => res.json())
-          .catch(() => null); // Don't fail if backend is slow/unavailable
-        
-        // Wait for either minimum time + data, or maximum time (whichever comes first)
-        await Promise.race([
-          Promise.all([minLoadingTime, dataPromise]),
-          maxLoadingTime
-        ]);
+        // Wait for minimum time (no need to wait for API)
+        await minLoadingTime;
         
         setInitialDataLoaded(true);
         setIsLoading(false);
       } catch (error) {
         console.log("App loading error:", error);
-        // Still proceed to load the app after minimum time
-        await minLoadingTime;
         setIsLoading(false);
       }
     };

@@ -37,27 +37,15 @@ const AppContent = () => {
             Royal Cars
           </h1>
           <p className="text-gray-600 mb-4">
-            Loading your premium car rental experience...
+            Preparing your luxury car rental experience...
           </p>
           
-          {/* Loading steps indicator */}
-          <div className="flex items-center justify-center space-x-2 mb-4">
-            <div className="w-3 h-3 bg-blue-500 rounded-full animate-bounce"></div>
-            <div className="w-3 h-3 bg-purple-500 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-            <div className="w-3 h-3 bg-indigo-500 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+          {/* Simplified loading indicator */}
+          <div className="flex items-center justify-center space-x-1 mb-4">
+            <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+            <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
+            <div className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
           </div>
-          
-          <p className="text-sm text-gray-500 mb-6">
-            Connecting to server and loading data...
-          </p>
-          
-          {/* Skip button for impatient users */}
-          <button
-            onClick={() => setIsLoading(false)}
-            className="text-blue-600 hover:text-blue-800 text-sm font-medium underline transition-colors"
-          >
-            Skip loading and continue →
-          </button>
         </div>
       </div>
     )
