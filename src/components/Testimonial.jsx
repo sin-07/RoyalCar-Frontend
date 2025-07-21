@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from "react";
 import Title from "./Title";
 import { assets } from "../assets/assets";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 import { useAppContext } from "../context/AppContext";
 
 const Testimonial = () => {
   const { axios } = useAppContext();
   const [testimonials, setTestimonials] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
 
   // Static testimonials as fallback
   const staticTestimonials = [
@@ -45,6 +47,35 @@ const Testimonial = () => {
     // Then try to fetch backend testimonials in the background
     fetchTestimonials();
   }, []);
+
+  // Auto-play functionality
+  useEffect(() => {
+    if (!isAutoPlaying || testimonials.length <= 1) return;
+
+    const interval = setInterval(() => {
+      setCurrentIndex((prevIndex) => 
+        prevIndex === testimonials.length - 1 ? 0 : prevIndex + 1
+      );
+    }, 4000); // Change slide every 4 seconds
+
+    return () => clearInterval(interval);
+  }, [isAutoPlaying, testimonials.length]);
+
+  const nextSlide = () => {
+    setCurrentIndex((prevIndex) => 
+      prevIndex === testimonials.length - 1 ? 0 : prevIndex + 1
+    );
+  };
+
+  const prevSlide = () => {
+    setCurrentIndex((prevIndex) => 
+      prevIndex === 0 ? testimonials.length - 1 : prevIndex - 1
+    );
+  };
+
+  const goToSlide = (index) => {
+    setCurrentIndex(index);
+  };
 
   const fetchTestimonials = async () => {
     try {
@@ -105,43 +136,136 @@ const Testimonial = () => {
           />
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mt-18">
-          {testimonials.map((testimonial, index) => (
-            <motion.div
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: index * 0.2, ease: "easeOut" }}
-              viewport={{ once: true, amount: 0.3 }}
-              key={testimonial._id || index}
-              className="bg-white p-6 rounded-xl shadow-lg hover:-translate-y-1 transition-all duration-500"
-            >
-              <div className="flex items-center gap-3">
-                <img
-                  className="w-12 h-12 rounded-full object-cover"
-                  src={testimonial.image}
-                  alt={testimonial.customerName}
-                />
-                <div>
-                  <p className="text-xl font-medium">{testimonial.customerName}</p>
-                  <p className="text-gray-500 text-sm">{testimonial.location}</p>
-                  {!testimonial.isStatic && (
-                    <p className="text-green-600 text-xs font-medium">✓ Verified Review</p>
-                  )}
-                </div>
-              </div>
-              <div className="flex items-center gap-1 mt-4">
-                {renderStars(testimonial.rating)}
-              </div>
-              <p className="text-gray-600 max-w-90 mt-4 font-light leading-relaxed">
-                "{testimonial.reviewText || testimonial.testimonial}"
-              </p>
-              {testimonial.createdAt && (
-                <p className="text-gray-400 text-xs mt-3">
-                  {new Date(testimonial.createdAt).toLocaleDateString()}
-                </p>
-              )}
-            </motion.div>
-          ))}
+        <div className="relative max-w-4xl mx-auto mt-16">
+          {/* Slider Container */}
+          <div 
+            className="relative overflow-hidden rounded-2xl bg-white shadow-2xl"
+            onMouseEnter={() => setIsAutoPlaying(false)}
+            onMouseLeave={() => setIsAutoPlaying(true)}
+          >
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentIndex}
+                initial={{ opacity: 0, x: 300 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -300 }}
+                transition={{ duration: 0.5, ease: "easeInOut" }}
+                className="p-8 md:p-12 lg:p-16"
+              >
+                {testimonials.length > 0 && (
+                  <div className="flex flex-col items-center text-center">
+                    {/* Customer Image */}
+                    <div className="relative mb-6">
+                      <motion.img
+                        initial={{ scale: 0.8, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ duration: 0.4, delay: 0.2 }}
+                        className="w-20 h-20 md:w-24 md:h-24 rounded-full object-cover shadow-lg ring-4 ring-white ring-offset-4 ring-offset-gray-100"
+                        src={testimonials[currentIndex].image}
+                        alt={testimonials[currentIndex].customerName}
+                      />
+                      {!testimonials[currentIndex].isStatic && (
+                        <div className="absolute -bottom-2 -right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full shadow-lg">
+                          ✓ Verified
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Rating Stars */}
+                    <motion.div 
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.4, delay: 0.3 }}
+                      className="flex items-center gap-1 mb-6"
+                    >
+                      {renderStars(testimonials[currentIndex].rating)}
+                    </motion.div>
+
+                    {/* Review Text */}
+                    <motion.blockquote
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.4, delay: 0.4 }}
+                      className="text-lg md:text-xl lg:text-2xl text-gray-700 font-light leading-relaxed mb-6 max-w-3xl italic"
+                    >
+                      "{testimonials[currentIndex].reviewText || testimonials[currentIndex].testimonial}"
+                    </motion.blockquote>
+
+                    {/* Customer Info */}
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.4, delay: 0.5 }}
+                      className="text-center"
+                    >
+                      <h4 className="text-xl md:text-2xl font-bold text-gray-900 mb-1">
+                        {testimonials[currentIndex].customerName}
+                      </h4>
+                      <p className="text-gray-500 text-sm md:text-base">
+                        {testimonials[currentIndex].location}
+                      </p>
+                      {testimonials[currentIndex].createdAt && (
+                        <p className="text-gray-400 text-xs mt-2">
+                          {new Date(testimonials[currentIndex].createdAt).toLocaleDateString()}
+                        </p>
+                      )}
+                    </motion.div>
+                  </div>
+                )}
+              </motion.div>
+            </AnimatePresence>
+
+            {/* Navigation Arrows */}
+            {testimonials.length > 1 && (
+              <>
+                <button
+                  onClick={prevSlide}
+                  className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white text-gray-700 hover:text-gray-900 rounded-full p-3 shadow-lg hover:shadow-xl transition-all duration-200 backdrop-blur-sm"
+                  aria-label="Previous testimonial"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                
+                <button
+                  onClick={nextSlide}
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white text-gray-700 hover:text-gray-900 rounded-full p-3 shadow-lg hover:shadow-xl transition-all duration-200 backdrop-blur-sm"
+                  aria-label="Next testimonial"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </>
+            )}
+          </div>
+
+          {/* Auto-play Control */}
+          {testimonials.length > 1 && (
+            <div className="flex justify-center mt-4">
+              <button
+                onClick={() => setIsAutoPlaying(!isAutoPlaying)}
+                className="text-gray-500 hover:text-gray-700 text-sm flex items-center gap-2 transition-colors duration-200"
+              >
+                {isAutoPlaying ? (
+                  <>
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                    Pause Auto-play
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                    </svg>
+                    Resume Auto-play
+                  </>
+                )}
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>
