@@ -75,11 +75,20 @@ const Cars = () => {
       // Show loading toast
       const loadingToast = toast.loading("Creating your booking...");
 
-      const { data } = await axios.post("/api/bookings/create", {
-        car: carId,
-        pickupDateTime,
-        returnDateTime,
-      });
+      // Always send the token in the Authorization header
+      const { data } = await axios.post(
+        "/api/bookings/create",
+        {
+          car: carId,
+          pickupDateTime,
+          returnDateTime,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       // Dismiss loading toast
       toast.dismiss(loadingToast);
@@ -104,7 +113,6 @@ const Cars = () => {
       }
     } catch (err) {
       console.error("Booking error:", err);
-      
       // Handle network errors
       if (err.response?.data?.message) {
         toast.error(err.response.data.message);

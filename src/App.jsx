@@ -1,6 +1,17 @@
 import React, { useState } from "react";
 import Navbar from "./components/Navbar";
 import { Route, Routes, useLocation } from "react-router-dom";
+
+// ScrollToTop component to scroll to top on route change
+import { useEffect } from "react";
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    // Force instant scroll by setting scroll position directly
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+};
 import Home from "./pages/Home";
 import CarDetails from "./pages/CarDetails";
 import Cars from "./pages/Cars";
@@ -42,18 +53,11 @@ const AppContent = () => {
           <p className="text-gray-600 mb-4">
             Preparing your luxury car rental experience...
           </p>
-
           {/* Simplified loading indicator */}
           <div className="flex items-center justify-center space-x-1 mb-4">
             <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-            <div
-              className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"
-              style={{ animationDelay: "0.2s" }}
-            ></div>
-            <div
-              className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse"
-              style={{ animationDelay: "0.4s" }}
-            ></div>
+            <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse" style={{ animationDelay: "0.2s" }}></div>
+            <div className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse" style={{ animationDelay: "0.4s" }}></div>
           </div>
         </div>
       </div>
@@ -62,11 +66,10 @@ const AppContent = () => {
 
   return (
     <>
+      <ScrollToTop />
       <Toaster />
       {showLogin && <Login />}
-
       {!isOwnerPath && <Navbar />}
-
       <div className={!isOwnerPath ? "pt-[73px]" : ""}>
         <Routes>
           {/* Public routes - Home page needs special handling for Hero section */}
@@ -83,7 +86,6 @@ const AppContent = () => {
           <Route path="/car-details/:id" element={<CarDetails />} />
           <Route path="/verify-otp" element={<OtpVerification />} />
           <Route path="/email-test" element={<EmailTestPage />} />
-
           {/* Protected routes - require authentication */}
           <Route
             path="/my-bookings"
@@ -101,7 +103,6 @@ const AppContent = () => {
               </ProtectedRoute>
             }
           />
-
           {/* Owner routes - require owner authentication */}
           <Route
             path="/owner"
@@ -119,7 +120,6 @@ const AppContent = () => {
           </Route>
         </Routes>
       </div>
-
       {!isOwnerPath && <Footer />}
     </>
   );
