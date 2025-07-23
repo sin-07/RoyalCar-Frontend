@@ -47,7 +47,7 @@ const ManageCars = () => {
     setManualBookingLoading(true);
     setManualBookingError("");
     try {
-      const { data } = await axios.post('/api/owner/manual-booking', {
+      const { data } = await axios.post('/api/bookings/manual-booking', {
         carId: selectedCar._id,
         startDateTime: manualBookingStart,
         endDateTime: manualBookingEnd,
@@ -65,7 +65,7 @@ const ManageCars = () => {
         setManualBookingEmail("");
         setSelectedCar(null);
         // Refresh bookings so UI updates immediately
-        fetchCarBookings();
+        setTimeout(() => { fetchCarBookings(); }, 300); // Ensure UI refresh after modal closes
       } else {
         setManualBookingError(data.message || "Failed to create booking.");
       }
@@ -91,14 +91,22 @@ const ManageCars = () => {
 
   // Fetch booking status for all cars
   const fetchCarBookings = async () => {
-    try {
-      const { data } = await axios.get('/api/owner/car-bookings');
-      if (data.success) {
-        setCarBookings(data.carBookings);
+  try {
+    const { data } = await axios.get('/api/owner/car-bookings');
+    if (data.success) {
+      setCarBookings(data.carBookings);
+      // Debug: Log booking info for selected car after refresh
+      if (selectedCar) {
+        const info = data.carBookings.find(b => b.carId === selectedCar._id);
+        console.log('Booking info for selected car after refresh:', info);
+        if (info) {
+          toast('Booking status: ' + (info.isBookedNow ? 'Booked' : 'Not Booked'), { icon: info.isBookedNow ? '🚗' : '✅' });
+        }
       }
-    } catch (error) {
-      // Silent fail
     }
+  } catch (error) {
+    // Silent fail
+  }
   }
 
   const toggleAvailability = async (carId)=>{
@@ -164,6 +172,13 @@ const ManageCars = () => {
 
   return (
     <div className="px-4 pt-10 md:px-10 w-full">
+      {/* Refresh Button for Booking Status */}
+      <div className="flex justify-end mb-2">
+        <button
+          className="py-1 px-4 rounded-lg bg-green-500 hover:bg-green-600 text-white font-semibold border border-green-600 shadow transition"
+          onClick={() => { fetchCarBookings(); toast.success('Booking status refreshed!'); }}
+        >Refresh Status</button>
+      </div>
       {/* Manual Booking Modal (must be inside return to render) */}
       {showManualBookingModal && selectedCar && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 animate-fadeIn">
@@ -258,6 +273,17 @@ const ManageCars = () => {
               <tbody>
                 {filteredCars.map((car, index) => {
                   const bookingInfo = carBookings.find(b => b.carId === car._id);
+                  // Debug: Log current time and booking time ranges
+                  if (bookingInfo?.currentBooking) {
+                    const now = new Date();
+                    const start = new Date(`${bookingInfo.currentBooking.pickupDate}T${bookingInfo.currentBooking.pickupTime}`);
+                    const end = new Date(`${bookingInfo.currentBooking.returnDate}T${bookingInfo.currentBooking.returnTime}`);
+                    console.log(`Car: ${car.brand} ${car.model}`);
+                    console.log('Current time:', now.toISOString());
+                    console.log('Booking start:', start.toISOString());
+                    console.log('Booking end:', end.toISOString());
+                    console.log('Is booked now:', bookingInfo.isBookedNow);
+                  }
                   return (
                     <tr
                       key={index}
@@ -277,6 +303,13 @@ const ManageCars = () => {
                             <div className="mb-1">Seats: <span className="font-medium">{car.seating_capacity}</span></div>
                             <div className="mb-1">Fuel: <span className="font-medium">{car.fuel_type}</span></div>
                             <div>Trans: <span className="font-medium">{car.transmission}</span></div>
+                            {/* Debug: Show current booking time info */}
+                            {bookingInfo?.currentBooking && (
+                              <div className="mt-2 text-xs text-gray-500">
+                                <b>Current Booking:</b><br />
+                                {bookingInfo.currentBooking.pickupDate} {bookingInfo.currentBooking.pickupTime} - {bookingInfo.currentBooking.returnDate} {bookingInfo.currentBooking.returnTime}
+                              </div>
+                            )}
                             {bookingInfo?.isBookedNow && (
                               <div className="mt-2 text-yellow-600 font-semibold text-xs">Booked until {new Date(bookingInfo.nextAvailableAt).toLocaleString()}</div>
                             )}
@@ -307,7 +340,7 @@ const ManageCars = () => {
                       <td className="p-4 relative">
                         <div className="relative">
                           <button
-                            className="py-1 px-2 rounded-lg bg-gray-100 hover:bg-green-100 text-green-700 font-semibold text-xs border border-green-300 transition flex items-center gap-1"
+                            className="flex items-center justify-center px-2 md:px-3 py-1 rounded-full text-xs md:text-sm font-bold tracking-wide shadow bg-gray-100 hover:bg-green-100 text-green-700 border border-green-300 min-w-0 w-full max-w-[120px] text-center break-words whitespace-nowrap transition gap-1"
                             onClick={e => {
                               e.stopPropagation();
                               const rect = e.currentTarget.getBoundingClientRect();
